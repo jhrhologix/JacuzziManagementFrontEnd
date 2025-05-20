@@ -1,0 +1,48 @@
+// Color-Variables
+$blue: #1B619D !default;
+$blue-dark: #1a55df !default;
+$blue-dark-100: #091a61 !default;
+
+$blue2: #132893 !default;
+
+$red: #DF4242 !default;
+$red-dark: #DF4242 !default;
+$red-dark-100: #882424 !default;
+
+$green: #10b759;
+$green-dark: #05a149;
+
+$info: #00bcd4 !default;
+
+$yellow: #ffc107;
+$yellow-dark: #d1a400;
+
+$primary: $blue !default;
+$primary-dark: $blue-dark !default;
+$primary-dark-100: $blue-dark-100 !default;
+
+$secondary: $blue2 !default;
+
+$primary-text: $blue;
+$primary-dark: $blue-dark !default;
+
+$danger: $red !default;
+$danger-dark: $red-dark !default;
+$danger-dark-100: $red-dark-100 !default;
+
+$success: $green !default;
+$success-dark: $green-dark !default;
+
+$info: $cyan !default;
+
+$warning: $yellow;
+$warning-dark: $yellow-dark;
+
+// Font-Family
+$primary-font: "Lato",sans-serif;
+$secondary-font: "Oswald", sans-serif;
+
+// Base-Color
+$base-color: #232e35;
+
+$deleted: #202321;

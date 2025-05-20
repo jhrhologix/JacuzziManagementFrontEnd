@@ -1,0 +1,19 @@
+
+<div class="modal fade" id="googleMapModal" tabindex="-1" aria-labelledby="googleMapModal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transferVisitsModalLabel"> {{'SEND_EMAIL.EDIT_EMAIL_TEMPLATE' | translate }} </h5>
+                <button type="button" id="EmailVisitsModalclose" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <h3>Route Directions</h3>
+                    <div #mapContainer id="map" style="height: 500px; width: 100%;"></div>
+                  </div>
+                <!-- <div style="height: 500px; width: 100%;" #mapContainer></div> -->
+            </div>            
+        </div>
+    </div>
+</div>

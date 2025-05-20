@@ -1,0 +1,35 @@
+.account_page{
+    .btn-outline-primary{
+        font-size: 16px;
+            font-weight: 700;
+    }
+        .modify_div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            a {
+                    color: #1b619d;
+                }
+        }    
+        
+}
+
+select.account_user {
+    width: 120px;
+}
+.bg-white {
+    padding: 10px;
+    border-radius: 5px;
+
+    
+}
+
+
+.btnsdiv.small_btn {
+    padding-top: 0;
+    button.btn.btn-outline-primary {
+        font-size: 14px;
+        padding: 4px 8px;
+    }
+}

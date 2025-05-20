@@ -1,0 +1,62 @@
+.listofappointments {
+    display: flex;
+    align-items: start;
+    // justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+
+
+    .listapp {
+        width: calc(20% - 18px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        border-radius: 5px;
+        font-size: 20px;
+        text-align: center;
+        background: linear-gradient(120deg, #1b619d5c, #76c7f530, #b3e5fc);
+        gap: 5px;
+        height: auto;
+        min-height: 190px;
+        position: relative;
+        button.btn.btn-outline-primary {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 2px 5px;
+            font-size: 12px;
+        }
+        @media (max-width:1300px) {
+            width: calc(25% - 18px);
+            height: auto;
+        }
+
+        @media (max-width:800px) {
+            width: calc(33.3% - 18px);
+        }
+
+        @media (max-width:667px) {
+            width: calc(50% - 18px);
+        }
+
+        @media (max-width:480px) {
+            width: 100%;
+            height: auto;
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .name {
+            font-size: 14px;
+        }
+    }
+}
+.red-row{
+    background: #ade5c0 !important;
+  //color: red;
+}

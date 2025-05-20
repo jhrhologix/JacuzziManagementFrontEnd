@@ -1,0 +1,124 @@
+section.client_list_main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    
+
+    @media screen and (max-width: 1200px) {
+        .col-lg-4 {
+            width: 100%;
+        }
+
+        .col-lg-8 {
+            width: 100%;
+        }
+    }
+
+        .btnsdiv button.btn.btn-primary {
+            font-size: 12px;
+        }
+        
+    .bg-white {
+        padding: 20px;
+        border-radius: 5px;
+         h4 {
+                justify-content: space-between;
+                @media (max-width:667px) {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 10px;
+                }
+                span {
+                    background: #e25151;
+                    color: yellow;
+                    font-size: 16px;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    line-height: 24px;
+                }
+            }
+
+        @media (max-width:767px) {
+            .form_main .row {
+                gap: 5px;
+            }
+        }
+
+    }
+
+    h4 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+
+        @media (max-width:767px) {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+    }
+    .blacklist{
+        background-color: rgb(115, 146, 204);
+        font-weight: bold;
+        text-align: center; 
+        width: 210px;
+    }
+        .submit_btns {
+            @media (max-width: 1300px) {
+                    flex-wrap: wrap;
+                    align-items: flex-start !important;
+                    justify-content: flex-start !important;
+            }
+            button.btn.btn-outline-primary {
+            font-size: 16px;
+            font-weight: 700;
+            @media (max-width: 1300px) {
+                font-size: 16px;
+            }
+        }
+    }
+    
+}
+
+.mendatory-symb {
+    color: red;
+}
+
+
+
+.form_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+button.btn.searchbuttonfilter {
+    padding: 0px 6px;
+    position: absolute;
+    right: 5px;
+    border-radius: 50%;
+    top: 8px;
+    width: 30px !important;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    left: auto;
+    @media (max-width:1400px) {
+        width: 100%;
+    }
+    svg {
+        height: 20px;
+        width: 20px;
+        path{
+            fill : #1B619D;
+        }
+        }
+}
+
+
+

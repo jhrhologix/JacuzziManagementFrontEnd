@@ -1,0 +1,96 @@
+
+            <!-- <h4 class="mb-4"> {{ 'Technician.InfoSpa' | translate }} </h4> -->
+            <form [formGroup]="spaTechForm" autocomplete="off">
+                <!-- Marque, Modèle, Piscinier -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="zone" class="form-label">{{ 'HEADER.SpaBrandLabel' | translate }}</label>
+                        <select class="form-select" (change)="onSpaBrandChange($event)" formControlName="spaBrand_id">
+                            <option value="" disabled  selected>Select Brand</option>
+                            <option *ngFor="let option of spaBrands" [value]="option.id">
+                                {{option.value }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="zone" class="form-label">{{ 'HEADER.SpaModelLabel' | translate }}</label>
+                        <select class="form-select" formControlName="spaModel_id">
+                            <option value="" disabled selected>Select Model</option>
+                            <option *ngFor="let option of spaModel" [value]="option.id">
+                                {{option.value }}
+
+                            </option>
+                        </select>
+                    </div>
+                    <div id="loader" class="loader" *ngIf="isLoading">
+                        <div class="load">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="zone" class="form-label">{{ 'HEADER.PoolSpecialistNAme' | translate }}</label>
+                        <select class="form-select" formControlName="poolSpecialist_id">
+                            <option value="" disabled selected>Select pool specialist</option>
+                            <option *ngFor="let option of poolSpecialist" [value]="option.id">
+                            {{option.name}} - {{option.value }} 
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <!-- Série Number -->
+                    <div class="col-md-6">
+                        <label for="serialNo" class="form-label"> {{ 'Technician.SerialNo' | translate }} </label>
+                        <input type="text" formControlName="serialNo" class="form-control" 
+                            placeholder="Serial No">
+                        <div *ngIf="spaTechForm.get('serialNo')?.invalid && (spaTechForm.get('serialNo')?.touched || spaTechForm.get('serialNo')?.dirty)"
+                            class="text-danger">
+                            <span *ngIf="spaTechForm.get('serialNo')?.hasError('required')">{{ 'HEADER.REQUIRED_Series' |
+                                translate }}</span>
+
+                        </div>
+                    </div>
+
+                    <!-- Date d'achat -->
+                    <div class="col-md-6">
+                        <label for="purchaseDate" class="form-label">{{ 'HEADER.PurchaseDate' | translate }}</label>
+                        <input type="date"  class="form-control" formControlName="purchaseDate" >
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="warrantyDate" class="form-label">{{ 'HEADER.WarrantyDate' | translate }}</label>
+                    <input type="date" class="form-control" formControlName="warrantydate">
+                </div>
+                <div class="col-md-12 mt-4">
+                    <div id="spaId" class="table-responsive">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th class="mat-mdc-header-cell"> {{ 'HEADER.SpaBrandLabel' | translate }} </th>
+                              <th class="mat-mdc-header-cell"> {{ 'HEADER.SpaModelLabel' | translate }} </th>
+                              <th class="mat-mdc-header-cell"> {{ 'HEADER.PoolSpecialistNAme' | translate }} </th>
+                              <th class="mat-mdc-header-cell"> {{ 'HEADER.Series' | translate }} </th>
+                              <th class="mat-mdc-header-cell"> {{ 'HEADER.PurchaseDate' | translate }} </th>
+                              <th class="mat-mdc-header-cell"> {{ 'HEADER.WarrantyDate' | translate }} </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let item of allSpaDetails" class="mat-mdc-row">
+                              <td class="mdc-data-table__cell mat-mdc-cell p-2"><i>{{item.spaBrand_label}}</i></td>
+                              <td class="mdc-data-table__cell mat-mdc-cell p-2"><i>{{item.spaModel_label}}</i></td>
+                              <td class="mdc-data-table__cell mat-mdc-cell p-2"><i>{{item.poolSpecialist_abbreviation}}</i></td>
+                              <td class="mdc-data-table__cell mat-mdc-cell p-2"><i>{{item.serialNo}}</i></td>
+                              <td class="mdc-data-table__cell mat-mdc-cell p-2"><i>{{item.purchaseDate}}</i></td>
+                              <td class="mdc-data-table__cell mat-mdc-cell p-2"><i>{{item.warrantyDate}}</i></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-primary" (click)="onUpdateSpaData()"> {{ 'HEADER.SAVE' | translate }} </button>
+                </div>
+            </form>

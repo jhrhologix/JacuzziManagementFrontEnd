@@ -1,0 +1,125 @@
+@import "./_variables";
+.table-responsive {
+    border-radius: 5px;
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #EFEFEF;
+    overflow-y: auto;
+        max-height: 995px;
+
+        &.search_table {
+            position: absolute;
+            z-index: 9;
+            max-height: 300px;
+            // border: 1px solid #4c94d1;
+            box-shadow: #4c94d169 0px 8px 24px;
+            width: 100%;
+            left: 0;
+            right: 0;
+            top: 50px;
+            margin: 0 auto;
+            @media (max-width:767px) {
+                top: 60px;
+                width: 100%;
+                max-height: 200px;
+            }
+            table {        
+                thead tr {
+                    background: #4c94d1 !important;
+                    color: #fff;
+                    height: 42px;
+                }
+        }
+    }
+
+
+
+        @media (max-width:767px) {
+            max-height: 300px;
+        }
+
+                &::-webkit-scrollbar {
+                    width: 6px;
+                    background-color: #F5F5F5;
+                        height: 6px;
+                }
+        
+                &::-webkit-scrollbar-thumb {
+                    background-color: $primary;
+                    opacity: .8;
+                    border-radius: 0 10px 10px 10px;
+                    @media (max-width:767px) {
+                            border-radius: 10px;
+                        }
+                }
+        
+                &::-webkit-scrollbar-track {
+                    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+                    background-color: #F5F5F5;
+                    border-radius: 10px;
+                    
+                }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: transparent;
+        border: 0;
+        margin: 0;
+
+        thead tr {
+            background: #1b619d !important;
+            color: #fff;
+            height: 42px;
+        }
+
+        .mat-sort-header-arrow {
+            color: #ffffff !important;
+        }
+
+        .mat-table {
+            font-family: $primary-font !important;
+        }
+
+        tr.mat-header-row {
+            height: auto !important;
+        }
+
+        th {
+            padding: 8px 8px !important;
+            white-space: nowrap;
+        }
+
+        th.mat-mdc-header-cell {
+            color: #fff;
+            font-size: 16px;
+                font-weight: 700;
+                font-family: 'Lato';
+                @media (max-width:767px) {
+                        font-size: 14px;
+                    }
+        }
+                 &>thead {
+                     position: sticky;
+                     top: 0;
+                 }
+        &>thead , &>tbody{
+            vertical-align: middle;
+        }
+        .mat-mdc-row{
+            height: 40px;
+            &:hover{
+                td.mat-mdc-cell {
+                        background: #1b619d2e;
+                        cursor: pointer;
+                }
+            }
+        }
+                td.mat-mdc-cell {
+                    border-bottom-color: #EFEFEF;
+                    font-size: 14px;
+                        font-family: 'Lato';
+                        white-space: nowrap;
+                }
+    }
+} 

@@ -1,0 +1,194 @@
+<div class="row ">
+    <div class="col-md-12 ">
+            <form [formGroup]="clientTechForm">
+                <div>
+                    <!-- <h4 class="mb-4"> {{ 'SERVICE_CALL.Client_Info' | translate }} </h4> -->
+
+
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.Client' | translate }} </label>
+                            <input class="form-control" formControlName="numClient">
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.NAME' | translate }} </label>
+                            <input class="form-control" formControlName="clientName">
+
+                            <!-- <i>{{firstName}} {{lastName}}</i> -->
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.LAST_NAME' | translate }} </label>
+                            <input class="form-control" formControlName="lastName">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'Technician.Apartment' | translate }} </label>
+                            <input class="form-control" formControlName="apartNo">
+
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.RUE' | translate }} </label>
+                            <input class="form-control" formControlName="streetNumber">
+
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.RUE' | translate }} </label>
+                            <input class="form-control" formControlName="street">
+
+                        </div>
+                    </div>
+
+                    <div class="row" >
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.VILLE' | translate }} </label>
+                            <input class="form-control" formControlName="city">
+
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> Province </label>
+                            <input class="form-control" formControlName="province_labelFr">
+                            <!-- <i>{{province_labelFr}}</i> -->
+                        </div>
+
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.POSTAL_CODE' | translate }} </label>
+                            <input class="form-control" formControlName="postalCode">
+                            <!-- <i>{{postalCode}}</i> -->
+                        </div>
+
+                        <!--<div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.ZONE' | translate }} </label>
+                            <input class="form-control" formControlName="area_abbreviationFr">-->
+                            <!-- <i>{{area_abbreviationFr}}</i> -->
+                        <!--</div>-->
+
+                        <div class="col-md-4 mb-2">
+                            <label> # Tel home. </label>
+                            <input class="form-control" formControlName="home">
+                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> # Tel spouse. </label>
+                            <input class="form-control" formControlName="spouse">
+                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> # Tel work. </label>
+                            <input class="form-control" formControlName="work">
+                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> # Tel other. </label>
+                            <input class="form-control" formControlName="other">
+                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label> {{ 'HEADER.NOTES' | translate }} </label>
+                            <textarea class="form-control" formControlName="notes" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label> {{ 'HEADER.COMMENTS' | translate }} </label>
+                            <textarea class="form-control" formControlName="comments" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 text-end mt-4">
+                            <button type="submit" class="btn btn-primary" (click)="onUpdateClientData()"> {{ 'HEADER.SAVE' | translate }} </button>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+            </form>
+    </div>
+</div>
+<div id="loader" class="loader" *ngIf="isLoading">
+    <div class="load">
+    </div>
+</div>
+
+<!-- <div class="row mt-4">
+    <div class="col-md-12">
+        <form [formGroup]="clientTechForm">
+        <div>
+            <h4 class="mb-4">Info Client</h4>
+            <div class="row info_client">
+            
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title"># Client</span>
+                    <span class="badge bg-primary">{{numClient}}</span>
+                </div>
+
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">Name</span>
+                    <span class="badge bg-primary"><label>{{firstName}}  {{lastName}}</b></span>
+                </div>
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">Last name</span>
+                    <span class="badge bg-primary">{{lastName}}</span>
+                </div>
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title"># Apartment</span>
+                    <span class="badge bg-primary">{{apartNo}}</span>
+                </div>
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title"># Street</span>
+                    <span class="badge bg-primary">{{streetNumber}}</span>
+                </div>
+
+            <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">Street</span>
+                    <span class="badge bg-primary">{{street}}</span>
+                </div>
+
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">City</span>
+                    <span class="badge bg-primary">{{city}}</span>
+                </div>
+
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">Province</span>
+                    <span class="badge bg-primary">{{province_labelFr}}</span>
+                </div>
+
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">Code postal</span>
+                    <span class="badge bg-primary">{{postalCode}}</span>
+                </div>
+
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title">Area</span>
+                    <span class="badge bg-primary">{{area_abbreviationFr}}</span>
+                </div>
+
+                <div class="col-12 col-md-6 d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge  title"># Tel.</span>
+                    <span class="badge bg-primary"><label>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</b></span>
+                </div>
+           
+            
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" formControlName="notes" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <label class="form-label">Comments</label>
+                        <textarea class="form-control"  formControlName="comments" rows="2"></textarea>
+                    </div>
+                    <div class="text-end mt-4">
+                        <labelutton type="submit" class="btn btn-primary" (click)="onUpdateClientData()">Save</button>
+                    </div>
+          
+             
+            </div>
+        </div>
+    </form>
+    </div>
+</div> -->

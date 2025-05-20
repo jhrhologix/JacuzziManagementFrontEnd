@@ -1,0 +1,142 @@
+@import "../../../assets/theme/variables";
+
+
+
+
+.login_page {
+    .row {
+        padding: 24px;
+
+        @media (max-width:1400px) {
+            padding: 10px;
+        }
+    }
+
+    .imagepart {
+        background: url(../../../assets/img/login_bg.png) no-repeat center;
+        background-size: cover;
+        padding: 100px 56px;
+        border-radius: 10px;
+
+        @media (max-width:1400px) {
+            padding: 50px 24px;
+        }
+
+        h2 {
+            font-size: 83.871px;
+            color: #fff;
+            font-weight: 300;
+            margin: 0;
+            line-height: 120%;
+
+            @media (max-width:1400px) {
+                font-size: 50px;
+            }
+
+            span.highlight {
+                font-weight: 700;
+            }
+        }
+
+        p {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.28px;
+
+            @media (max-width:1400px) {
+                font-size: 18px;
+            }
+
+            @media (max-width:800px) {
+                font-size: 16px;
+            }
+        }
+    }
+
+    .login_content_side {
+        position: relative;
+
+        .languageconverter {
+            position: absolute;
+            top: 0;
+            z-index: 9;
+            right: 0px;
+            @media (max-width:767px) {
+                top: 10px;
+                right: 10px;
+            }
+        }
+    }
+
+    @media (max-width:1400px) {
+        .login_page_contouter {
+            padding-left: 20px;
+        }
+    }
+
+    @media (max-width:767px) {
+        .login_page_contouter {
+            padding-left: 0px;
+        }
+    }
+
+    .login_page_cont {
+        border-radius: 5px;
+        border: 1px solid #DDD;
+        align-self: stretch;
+        padding: 20px;
+        display: flex;
+        gap: 40px;
+        width: 490px;
+
+        @media (max-width:1400px) {
+            width: 100%;
+            gap: 16px;
+        }
+
+        h3 {
+            color: $blue;
+            font-size: 38px;
+            font-weight: 700;
+            line-height: normal;
+            letter-spacing: -1px;
+            margin: 0;
+
+            @media (max-width:1400px) {
+                font-size: 28px;
+            }
+
+            span {
+                background: url(../../../assets/img/hifi.png) no-repeat center 25px;
+                background-size: contain;
+                padding: 20px;
+                margin-left: 10px;
+
+                @media (max-width:1400px) {
+                    background-position: center 17px;
+                    padding: 18px;
+                }
+            }
+        }
+
+        p {
+            color: #161818c7;
+
+            span {
+                font-size: 28px;
+                font-style: normal;
+                font-weight: 700;
+                line-height: 34px;
+                display: block;
+                margin-bottom: 5px;
+                color: #25292D;
+
+                @media (max-width:1400px) {
+                    font-size: 22px;
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+}

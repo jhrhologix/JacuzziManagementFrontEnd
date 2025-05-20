@@ -1,0 +1,71 @@
+@import "./_variables";
+
+.text-primary {
+  color: $primary !important;
+}
+
+.text-secondary {
+  color: $secondary !important;
+}
+
+.text-success {
+  color: $success !important;
+}
+
+.text-warning {
+  color: $danger !important;
+}
+
+.text-success {
+  color: $success !important;
+}
+
+
+
+.loader {
+  transition: 0.3s linear;
+    position: fixed;
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: #ffffffba;
+    z-index: 99999;
+  .load {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: inline-block;
+      border-top: 4px solid #1b619d;
+      border-right: 4px solid transparent;
+      -webkit-animation: rotation 1s linear infinite;
+      animation: rotation 1s linear infinite;
+      position: relative;
+      &:after {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border-bottom: 4px solid #1b619d6b;
+          border-left: 4px solid transparent;
+        }
+    }
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg)
+  }
+
+  100% {
+    transform: rotate(360deg)
+  }
+}

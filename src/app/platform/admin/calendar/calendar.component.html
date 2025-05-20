@@ -1,0 +1,215 @@
+<div id="loader" class="loader" *ngIf="isLoading">
+  <div class="load">
+  </div>
+</div>
+<section class="client_list_main bg-white">
+  <form autocomplete="off">
+    <h3>{{ 'CALENDAR.Aujourd_hui' | translate }}</h3>
+    <div class="row">
+      <div class="col-md-9">
+        <div class="row">
+          <div class="col-lg-4 mb-2">
+            <b>{{ 'CALENDAR.Date' | translate }}</b>
+            <div class="calendar">
+              <input type="date" [(ngModel)]="selectedDate" name="selectedDate" (change)="onDateChange()"
+                class="form-control" id="visit-date-1">
+    
+            </div>
+          </div>
+          <div class="col-lg-4 mb-2">
+            <b> {{ 'CALENDAR.Technician' | translate }} </b>
+            <div class="technician">
+              <select class="form-select" [(ngModel)]="selectedTechnicianId" name="selectedTechnicianId"
+                (change)="onTechnicianChange()">
+                <option value=0>Select Technician</option>
+                <option *ngFor="let option of technicianList" [value]="option.id">
+                  {{option.technicianName | uppercase}}
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-2">
+            <label for="serviceStatusSelect"><b> {{ 'CALENDAR.Service_Status' | translate }} </b></label>
+            <div class="status" *ngIf="currentLanguage == 'fr'">
+              <select id="serviceStatusSelect" class="form-select" [(ngModel)]="selectedStatusId" name="selectedStatusId"
+                (change)="onStatusChange()">
+                <option value=0>Select Status</option>
+                <option *ngFor="let option of serviceStatusList" [value]="option.serviceCallStatus_id">
+                  {{  option.serviceCallStatus_labelFr | uppercase}}
+                </option>
+              </select>
+            </div>
+            <div class="status" *ngIf="currentLanguage == 'en'">
+              <select id="serviceStatusSelect" class="form-select" [(ngModel)]="selectedStatusId" name="selectedStatusId"
+                (change)="onStatusChange()">
+                <option value=0>Select Status</option>
+                <option *ngFor="let option of serviceStatusList" [value]="option.serviceCallStatus_id">
+                  {{ option.serviceCallStatus_labelEn | uppercase}}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 p-0">
+        <form [formGroup]="calendarForm">
+         <div class="searchbuttonfilter-outer">
+          <b> {{ 'CALENDAR.Waitinglistfilter' | translate }} </b>
+          <button (click)="removefilter()" class="btn btn-outline-primary searchbuttonfilter">
+            <!-- {{ 'HEADER.Remove_Button' | translate }}  -->
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+                width="30" height="30" x="0" y="0" viewBox="0 0 512 512"
+                style="enable-background:new 0 0 512 512" xml:space="preserve" class="">
+                <g>
+                    <path
+                        d="M288.064 435.828a7.5 7.5 0 0 0-7.5 7.5v26.124c0 .119 0 .299-.259.448-.26.15-.415.058-.517-.001l-72.207-42.121a16.604 16.604 0 0 1-8.21-14.294V298.521h48.613a7.5 7.5 0 0 0 0-15h-52.912L25.076 106.135H454.86l-80.025 83.504c-2.866 2.991-2.765 7.738.226 10.604s7.738 2.765 10.604-.226l83.271-86.892a39.388 39.388 0 0 0 11-27.375V50.538c0-12.976-10.557-23.532-23.532-23.532H23.532C10.557 27.006 0 37.562 0 50.538v35.213c0 10.251 3.906 19.974 11 27.375l173.372 180.909v119.448c0 11.177 5.998 21.619 15.652 27.251l72.207 42.121c2.444 1.426 5.13 2.139 7.816 2.139 2.653 0 5.307-.696 7.729-2.087 4.877-2.801 7.788-7.831 7.788-13.455v-26.124a7.5 7.5 0 0 0-7.5-7.5zM15 50.538c0-4.705 3.828-8.532 8.532-8.532h432.871c4.705 0 8.532 3.827 8.532 8.532v35.213c0 1.831-.207 3.633-.598 5.384H15.598A24.686 24.686 0 0 1 15 85.751z"
+                        fill="#ffffff" opacity="1" data-original="#000000" class=""></path>
+                    <path
+                        d="M392.274 219.393c-66.017 0-119.726 53.709-119.726 119.726s53.709 119.726 119.726 119.726S512 405.136 512 339.119s-53.708-119.726-119.726-119.726zm0 224.451c-57.746 0-104.726-46.98-104.726-104.726s46.98-104.726 104.726-104.726S497 281.373 497 339.119c0 57.745-46.979 104.725-104.726 104.725z"
+                        fill="#ffffff" opacity="1" data-original="#000000" class=""></path>
+                    <path
+                        d="M445.674 285.719a7.497 7.497 0 0 0-10.606 0l-42.794 42.793-42.794-42.793a7.497 7.497 0 0 0-10.606 0 7.5 7.5 0 0 0 0 10.606l42.794 42.793-42.794 42.793a7.5 7.5 0 0 0 0 10.606c1.464 1.465 3.384 2.197 5.303 2.197s3.839-.732 5.303-2.197l42.794-42.793 42.794 42.793c1.464 1.465 3.384 2.197 5.303 2.197s3.839-.732 5.303-2.197a7.5 7.5 0 0 0 0-10.606l-42.794-42.793 42.794-42.793a7.497 7.497 0 0 0 0-10.606z"
+                        fill="#ffffff" opacity="1" data-original="#000000" class=""></path>
+                </g>
+            </svg>
+        </button>
+         </div> 
+        
+        
+        <div class="row">
+          
+            <div class="col-lg-6 mb-2">
+              <b>{{ 'CALENDAR.FromDate' | translate }}</b>
+              <div class="calendar">
+                <input type="date" (change)="updateMinToDate()" formControlName="fromDate" name="fromDate"
+                  class="form-control" id="from-date-1">
+      
+              </div>
+            </div>
+            <div class="col-lg-6 mb-2">
+              <b>{{ 'CALENDAR.ToDate' | translate }}</b>
+              <div class="calendar">
+                <input type="date" [min]="minToDate" formControlName="toDate" name="toDate" (change)="onToDateChange()"
+                  class="form-control" id="to-date-1">
+      
+              </div>
+            </div>
+          <div class="col-lg-6 mb-2">
+            <div class="calendar">
+              <b><label for="year-select">{{ 'CALENDAR.year' | translate }}</label></b>
+              <select  class="form-select" formControlName="selectedYear" (change)="selectYear($event)">
+                <option value="" disabled selected>Select Year</option>
+                <option [value]="year" *ngFor="let year of years">
+                  {{ year }}
+                </option>          
+              </select>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-2">
+            <div class="calendar">
+              <b><label for="year-select">{{ 'CALENDAR.month' | translate }}</label></b>
+              <select  class="form-select" formControlName="selectedMonth" (change)="onSelectMonth($event)">
+                <option value="" disabled selected>Month</option>
+                <option [value]="month.id" *ngFor="let month of monthesList">
+                  {{ currentLanguage == 'en' ? month.name : month.value }}
+                </option>  
+            </select>
+            </div>
+          </div>
+        
+        </div>
+      </form>
+      </div>
+    
+   
+    
+
+    </div>
+    <div class="row" style="margin-top: 5px;">
+      <div class="col-lg-3 mt-2">
+        <label for="serviceStatusSelect"><b>Date</b></label> :
+        <label for="serviceStatusSelect"><b>{{selectedDate | date:"MMM dd, yyyy" }}</b></label>
+      </div>
+      
+    </div>
+
+    <div class="kanban-responsive" #scrollContainer (dragover)="onDragOverScroll($event)">
+      <div class="kanban-board">
+        <!-- To Do Column -->
+        <div class="column" *ngFor="let technician of filtertechnicianList" (dragover)="onDragOver($event,technician)"
+          (drop)="onDrop(1, technician,2)">
+          <h2>{{ technician.technicianName | uppercase }}</h2>
+
+          <!-- Loop through each job in the technician's assignedJobList[0].value array -->
+          <div class="cardOuterdiv">
+            <ng-container *ngFor="let job of assignedJobList">
+
+              <div class="card" draggable="true" 
+                (dragstart)="onDragStart(job,technician,2)" 
+                [ngClass]="{'red-row': job.serviceCallStatus_labelEn === 'COMPLETED'}"
+                *ngIf="technician.id==job.technicianId">
+                <h3 (click)="servicecall(job) ;$event.stopPropagation()">{{ job.firstName + ' ' + job.lastName }}</h3>
+                <p><b>City: </b>{{ job.city }}</p>
+                <p><b>Status: </b> {{ job.serviceCallStatus_labelEn }}</p>
+                <p><b>Issue: </b>{{ job.issueClass_descriptionEn }}</p>
+                <p><b>Distance:</b> {{ job.distance || 'N/A'}}</p>
+                <p><b>Duration:</b> {{ job.duration || 'N/A'}}</p>
+                <p class="ptagwithselet">
+                  <b>Priority:</b>
+                  <select  class="form-select" [(ngModel)]="job.priority" [ngModelOptions]="{ standalone: true }"
+                    (mousedown)="stopPropagation($event)" (change)="onOptionSelect($event, job)">
+                    <option *ngFor="let option of getAvailablePriorities(job)" [value]="option">
+                      {{ option }}
+                    </option>
+                  </select>
+                </p>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
+
+
+
+        <!-- Done Column -->
+        <div *ngIf="filterStatusList || selectedStatusId==0" class="column" (dragover)="onDragOver($event,null)"
+          (drop)="onDrop(2,assignedJobList,1)">
+          <h2> {{ 'CALENDAR.waitingList' | translate }} </h2>
+          <div class="cardOuterdiv">
+            <div class="card" *ngFor="let client of clientsList" draggable="true"
+              (dragstart)="onDragStart(client,null,1)">
+              <h3 (click)="servicecall(client) ;$event.stopPropagation()">{{ client.firstName + ' ' + client.lastName }}</h3>
+              <p><b>City: </b> {{ client.city }}</p>
+              <p><b>Status: </b> {{ client.serviceCallStatus_labelEn }}</p>
+              <p><b>Issue:</b> {{ client.issueClass_descriptionEn }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </form>
+</section>
+
+
+<div class="modal fade" id="calendarModal" tabindex="-1" aria-labelledby="secondModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="secondModalLabel">{{ modalTitle }}</h5>
+        <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{ modalMessage }}
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{ 'MODAL.Cancel' | translate }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="confirmAction()"> {{ 'MODAL.Ok' | translate }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

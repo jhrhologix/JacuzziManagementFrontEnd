@@ -1,0 +1,13 @@
+@import "./_variables";
+
+.alert-primary {
+  background-color: rgba($primary, 0.15);
+  border-color: rgba($primary, 0.15);
+  color: $primary;
+}
+
+.alert-danger {
+  background-color: rgba($danger, 0.15);
+  border-color: rgba($danger, 0.15);
+  color: $danger-dark-100;
+}

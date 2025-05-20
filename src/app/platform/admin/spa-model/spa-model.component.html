@@ -1,0 +1,287 @@
+<!-- <div class="tables-container">
+  <h2>Spa Brands</h2>
+  <div class="button-container">
+    <button (click)="AddSpaBrand()">Add Brand</button>
+    <button (click)="DeleteSpaBrand()">Delete Selected Brand</button>
+    <input type="text" placeholder="Enter new brand name" [(ngModel)]="newBrandLabel">
+    <input type="text" placeholder="Search Brands" [(ngModel)]="searchBrand" (input)="filterBrands()">
+  </div>
+  <div class="scrollable-table">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let brand of filteredBrands" (click)="loadModelsByBrand(brand.id)">
+        <tr *ngFor="let brand of filteredBrands" (click)="onBrandRowClick(brand)">
+          <td>{{ brand.id }}</td>
+          <td>{{ brand.name || 'N/A' }}</td>
+          <td>{{ brand.value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Spa Models</h2>
+  <div class="button-container">
+    <input type="text" placeholder="Enter new Spa Model Label" [(ngModel)]="newSpaModelLabel" />
+    <input type="number" placeholder="Enter Spa Brand ID" [(ngModel)]="spaModelSpaBrandId" />
+    <button (click)="AddSpaModel()">Add Model</button>
+    <button (click)="DeleteSpaModel()">Delete Selected Model</button>
+    <input type="text" placeholder="Search Models" [(ngModel)]="searchModel" (input)="filterModels()" />
+  </div>
+  <div class="scrollable-table">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let model of filteredModels" (click)="selectModel(model.id)"
+          [class.selected-row]="model.id === spaModelSpaBrandId">
+          <td>{{ model.id }}</td>
+          <td>{{ model.name || 'N/A' }}</td>
+          <td>{{ model.value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <h2>Swimming Pool Contractors</h2>
+  <div class="button-container">
+    <button (click)="AddNewContractor()">Add Contractor</button>
+    <button (click)="DeleteContractor()">Delete Selected Contractor</button>
+    <input type="text" placeholder="Enter new Contractor" [(ngModel)]="newContractorName">
+    <input type="text" placeholder="Search Contractors" [(ngModel)]="searchContractor" (input)="filterContractors()">
+  </div>
+  <div class="scrollable-table">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let contractor of filteredContractors" (click)="onContractorRowClick(contractor.id)"
+          [class.selected-row]="contractor.id === selectedContractorId">
+          <td>{{ contractor.id }}</td>
+          <td>{{ contractor.name || 'N/A' }}</td>
+          <td>{{ contractor.value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div> -->
+
+<div id="loader" class="loader" *ngIf="isLoading">
+  <div class="load">
+  </div>
+</div>
+
+<div class="bg-white">
+  
+
+<section class="spa_page">
+  <div class="row">
+    <div class="col-md-6">
+      <h4>{{ 'SPA_MODEL.Spa_Brands' | translate }}</h4>
+      <div class="brand_list">
+        <div class="brand_list_inputs">
+          <input type="text" class="form-control" style="text-transform:uppercase" placeholder="{{ 'PLACEHOLDER.SearchBrand' | translate }}" [(ngModel)]="searchBrand"
+            (input)="getBrandInputValue($event)" />
+          <button type="button" class="btn" (click)="AddSpaBrand()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-pencil-square" viewBox="0 0 16 16">
+              <path
+                d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+              <path fill-rule="evenodd"
+                d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+            </svg>
+          </button>
+          <button type="button" class="btn btn-danger" (click)="actionbutton('deletebrand')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash"
+              viewBox="0 0 16 16">
+              <path
+                d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+              <path
+                d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+            </svg>
+          </button>
+          <button type="button" class="btn" (click)="clearInputField()">
+            &times;
+          </button>
+        </div>
+        <div class="buttons">
+
+          <ul class="list-group table-responsive">
+            <li *ngFor="let brand of filteredBrands" [id]="'brand-' + brand.id"
+            [class.active]="brand.id === selectedBrandId" 
+            (click)="onBrandRowClick(brand)">
+          {{ brand.value }}
+        </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="col-md-6">
+      <h4>{{ 'SPA_MODEL.Spa_Models' | translate }}</h4>
+      <div class="brand_list">
+        <div class="brand_list_inputs">
+          <input type="text" class="form-control" style="text-transform:uppercase" placeholder="{{ 'PLACEHOLDER.NewModelName' | translate }}" [(ngModel)]="searchModel"/>
+            <!-- <input type="text" class="form-control" style="text-transform:uppercase" placeholder="Search Model" [(ngModel)]="searchModel"
+            (input)="filterModels()" /> -->
+          <button type="button" class="btn" (click)="AddSpaModel()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-pencil-square" viewBox="0 0 16 16">
+              <path
+                d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+              <path fill-rule="evenodd"
+                d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+            </svg>
+          </button>
+          <button type="button" class="btn btn-danger" (click)="actionbutton('deletespamodels')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash"
+              viewBox="0 0 16 16">
+              <path
+                d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+              <path
+                d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+            </svg>
+          </button>
+          <button type="button" class="btn "  (click)="clearModelInputField()">
+            &times;
+          </button>
+        </div>
+        <div class="buttons">
+
+          <!--<ul class="list-group table-responsive">
+            <li *ngFor="let brand of filteredBrands" (click)="onBrandRowClick(brand)">
+              {{ brand.value }}
+            </li>
+          </ul> -->
+          <ul class="list-group table-responsive">
+              <!-- <li class="active"  *ngFor="let model of filteredModels" 
+                  [class.selected-row]="model.id === spaModelSpaBrandId"
+                  (click)="selectModel(model)">
+                {{ model.value }}
+              </li> -->
+              <li *ngFor="let model of filteredModels" 
+                  [class.active]="model.id === selectedModelId"
+                  [class.selected-row]="model.id === spaModelSpaBrandId"
+                  (click)="selectModel(model)">
+                {{ model.value }}
+              </li>
+            </ul>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="col-md-12 mt-5">
+      <h4>{{ 'SPA_MODEL.Pool_Specialist_list' | translate }}</h4>
+      <div class="brand_list">
+        <div class="brand_list_inputs">
+          <input type="text" class="form-control" style="text-transform:uppercase" placeholder="{{ 'PLACEHOLDER.SearchPoolSpec' | translate }}" [(ngModel)]="searchContractor"
+            (input)="filterContractors()" />
+            <input type="text" class="form-control" style="text-transform:uppercase"  [(ngModel)]="contractorAbbreviation"/>
+
+          <button type="button" class="btn" (click)="AddNewContractor()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="bi bi-pencil-square" viewBox="0 0 16 16">
+              <path
+                d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+              <path fill-rule="evenodd"
+                d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+            </svg>
+          </button>
+          <button type="button" class="btn btn-danger" (click)="actionbutton('deletePoolSpecialist')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash"
+              viewBox="0 0 16 16">
+              <path
+                d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+              <path
+                d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+            </svg>
+          </button>
+          <button type="button" class="btn" (click)="clearPoolSpecialistField()">
+            &times;
+          </button>
+        </div>
+        <div class="buttons">
+
+          <ul class="list-group table-responsive">
+              <li class="" *ngFor="let contractor of filteredContractors" 
+              [class.selected-row]="contractor.id === selectedContractorId"
+    [class.active]="contractor.id === selectedContractorId"
+                  (click)="onContractorRowClick(contractor)"
+                  [class.selected-row]="contractor.id === selectedContractorId">
+                {{ contractor.name || 'N/A' }} - {{ contractor.value }}
+              </li>            
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="spabrandModel" tabindex="-1" aria-labelledby="secondModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="secondModalLabel">{{ modalTitle }}</h5>
+              <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal"
+                  aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              {{ modalMessage }}
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{ 'MODAL.Cancel' | translate }} </button>
+                  <button type="button" *ngIf="isdeletebutton" class="btn btn-danger"
+                      (click)="confirmDelete('brand')"> {{ 'HEADER.DELETE' | translate }} </button>
+              </div>
+          </div>
+
+      </div>
+  </div>
+</div>
+
+
+</div>
+
+<!-- <div class="table-responsive">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="clientNumber">
+      <th mat-header-cell *matHeaderCellDef> Client Number </th>
+      <td mat-cell *matCellDef="let client"> {{ client.clientNumber }} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="firstName">
+      <th mat-header-cell *matHeaderCellDef> First Name </th>
+      <td mat-cell *matCellDef="let client"> {{ client.firstName }} </td>
+    </ng-container>
+
+    <ng-container matColumnDef="lastName">
+      <th mat-header-cell *matHeaderCellDef> Last Name </th>
+      <td mat-cell *matCellDef="let client"> {{ client.lastName }} </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator [pageSize]="6" showFirstLastButtons></mat-paginator>
+</div> -->

@@ -1,0 +1,81 @@
+<section class="client_list_main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="bg-white">
+                <h4> {{ 'SPA_REPORT.Report_Visit' | translate }} </h4>
+                <div class="form_main">
+                    <form [formGroup]="visitForm" autocomplete="off">
+                        <div class="row mb-3">
+                        <div class="col-md-3 col-12 mb-2">
+                            <label for="visit-date-1" class="form-label"> {{ 'SPA_REPORT.Visit_Date' | translate }} </label>
+                            <input type="date" formControlName="soluSpaReportFromDate" (change)="updateMinToDate()" class="form-control" id="visit-date-1">
+                            <div *ngIf="visitForm.get('soluSpaReportFromDate')?.invalid && (visitForm.get('soluSpaReportFromDate')?.touched || visitForm.get('soluSpaReportFromDate')?.dirty)"
+                            class="text-danger">
+                            <span *ngIf="visitForm.get('soluSpaReportFromDate')?.hasError('required')"> {{ 'SEND_EMAIL.DATE_OF_VISIT' | translate }} </span>
+                            
+                        </div>
+                        </div>
+                        <div class="col-md-3 col-12 mb-2">
+                            <label for="visit-date-1" class="form-label"> {{ 'SPA_REPORT.Visit_Date2' | translate }} </label>
+                            <input type="date" formControlName="soluSpaReportToDate" [min]="minToDate" class="form-control" id="visit-date-1">
+                            <div *ngIf="visitForm.get('soluSpaReportToDate')?.invalid && (visitForm.get('soluSpaReportToDate')?.touched || visitForm.get('soluSpaReportToDate')?.dirty)"
+                            class="text-danger">
+                            <span *ngIf="visitForm.get('soluSpaReportToDate')?.hasError('required')"> {{ 'SEND_EMAIL.DATE_OF_VISIT' | translate }}         </span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-12 mb-2">
+                            <label for="builder" class="form-label">{{ 'HEADER.PoolSpecialistNAme' | translate }}</label>
+                            <select class="form-select" formControlName="poolSpecialistName" id="builder" [ngModel]="poolSpecialistName">
+                              <option value="">Select Pool Specialist </option>
+                              <option *ngFor="let specialist of poolSpecialists" [value]="specialist.id">
+                                {{ specialist.name }}
+                              </option>
+                            </select>
+                            <div *ngIf="visitForm.get('poolSpecialistName')?.invalid && (visitForm.get('poolSpecialistName')?.touched || visitForm.get('poolSpecialistName')?.dirty)"
+                            class="text-danger">
+                            <span *ngIf="visitForm.get('poolSpecialistName')?.hasError('required')">
+                                {{ 'PLACEHOLDER.SelectPoolSpc' | translate }}</span>
+                            </div>
+                            </div>
+                          
+                            <div id="loader" class="loader" *ngIf="isLoading">
+                                <div class="load">
+                                </div>
+                              </div>
+                          
+                        <div class="col-md-3 col-12 text-end">
+                            <button (click)="reportSoluSpa()" class="btn btn-outline-primary sm mt-4">{{ 'SPA_REPORT.Excel' | translate }}</button>
+                        </div>                      
+                        
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12"><h4> {{ 'SPA_REPORT.Order_Parts' | translate }} </h4></div>
+                            <div class="col-md-3 col-12 mb-2">
+                                <label for="visit-date-2" class="form-label">{{ 'SPA_REPORT.Visit_Date' | translate }}</label>
+                                <input type="date" formControlName="Parts" class="form-control" id="visit-date-2" value="2024-10-14">
+                            </div>
+                            <div class="col-md-9 col-12 mb-2 text-end">
+                            <button (click)="partsReport()" class="btn btn-outline-primary sm mt-4">{{ 'SPA_REPORT.Excel' | translate }}</button>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <h4>{{ 'SPA_REPORT.Schedule' | translate }}</h4>
+                            </div>
+                            <div class="col-md-3 col-12 mb-2">
+                                <label for="visit-date-2" class="form-label">{{ 'SPA_REPORT.Visit_Date' | translate }}</label>
+                                <input type="date" formControlName="schedule" class="form-control" id="visit-date-2" value="2024-10-14">
+                            </div>
+                            <div class="col-md-9 col-12 mb-2 text-end">
+                                <button (click)="scheduleReports()" class="btn btn-outline-primary sm mt-4">{{ 'SPA_REPORT.Excel' | translate }}</button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

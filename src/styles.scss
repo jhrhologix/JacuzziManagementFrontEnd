@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+@import 'ngx-toastr/toastr';
+@import "assets/theme/alert";
+@import "assets/theme/badge";
+@import "assets/theme/bg";
+@import "assets/theme/buttons";
+@import "assets/theme/checkbox";
+@import "assets/theme/input";
+@import "assets/theme/switch";
+@import "assets/theme/text";
+@import "assets/theme/table";
+@import "assets/theme/variables";
+@import "assets/theme/dashboardcommom";
+
+
+html,
+body {
+    height: 100%;
+}
+
+.material-symbols-outlined {
+    font-size: 22px;
+}
+
+body , p , h1 , h2, h3 , h4 , h5 , h6 , a ,.mat-body-large, .mat-typography .mat-body-large, .mat-typography ,.mat-headline-large, .mat-typography .mat-headline-large, .mat-typography h4 {
+    font-family: $primary-font !important;
+}
+
+body{
+    background: #F8F8F8;
+}
+
+body,
+p,
+a  {
+    font-family: $primary-font !important;
+    font-size: 14px;
+    color: #161818;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+html, body { height: 100%; }
+body { margin: 0; font-family: $primary-font !important;  }
+
+.blurinputfield{
+    box-shadow: inset 50px 50px rgb(192, 191, 191);
+}
+
+label{
+    text-transform: capitalize;
+}
+h4{
+    text-transform: capitalize;
+}
+
+.accordion {
+    border: 0;
+    .accordion-item {
+        &.bg-white {
+            margin-bottom: 20px;
+        }
+        border: 0;
+        padding: 0;
+        .accordion-header{
+            margin:0 !important;
+            h4 {
+                margin:0 !important;
+            }
+        } 
+        .accordion-body {
+            border: 1px solid #cfe2ff;
+            border-radius: 0 0 10px 10px;
+        }
+    }
+    button.accordion-button {
+        color: var(--bs-accordion-active-color);
+        background-color: var(--bs-accordion-active-bg);
+        box-shadow: inset 0 calc(-1* var(--bs-accordion-border-width)) 0 var(--bs-accordion-border-color);
+        font-size: 24px;
+        border-radius: 10px 10px 0px 0px !important;
+    }
+}
+
+
+.modal-header .modal-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+

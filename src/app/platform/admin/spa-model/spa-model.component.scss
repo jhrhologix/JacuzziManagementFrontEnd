@@ -1,0 +1,122 @@
+// .tables-container {
+//     padding: 20px;
+//     background-color: #f4f4f4;
+// }
+
+// h2 {
+//     color: #333;
+//     margin-bottom: 10px;
+// }
+
+// .scrollable-table {
+//     max-height: 300px; /* Adjust height as necessary */
+//     overflow-y: auto; /* Enable vertical scrolling */
+//     margin-bottom: 30px;
+// }
+
+// .data-table {
+//     width: 100%;
+//     border-collapse: collapse;
+//     background-color: #fff;
+//     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+//     border-radius: 8px;
+// }
+
+// .data-table th, .data-table td {
+//     padding: 12px;
+//     text-align: left;
+//     border-bottom: 1px solid #ddd;
+// }
+
+// .data-table th {
+//     background-color: #4CAF50;
+//     color: white;
+//     font-weight: bold;
+// }
+
+// .data-table tr:hover {
+//     background-color: #f1f1f1;
+// }
+
+// /* CSS to highlight the selected row */
+// .selected-row {
+//     background-color: #e0f7fa; /* Light cyan background for selected rows */
+//   }
+  
+//   .data-table tr:hover {
+//     cursor: pointer; /* Show pointer cursor on hover */
+//   }
+  
+@import '../../../../assets/theme/variables';
+.spa_page{
+    @media (max-width:767px) {
+        .row{
+            gap: 20px;
+            .col-md-12.mt-3 {
+                    margin: 0 !important;
+                }
+        }
+    }
+    .brand_list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+    
+            .brand_list_inputs {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+    
+                button.btn {
+                    font-size: 20px;
+                    border: 1px solid #1b619d54;
+                    padding: 5px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: $primary;
+                    font-weight: 600;
+                    width: 30px;
+                    &.btn-danger {
+                        background: transparent;
+                        color: #df4242 !important;
+                        border-color: #df4242;
+                        &:hover{
+                            background: #df4242;
+                            color: #fff !important;
+                            border-color: #df4242;
+                        }
+                    }
+    
+                    &:hover {
+                        border: 1px solid $primary;
+                        background: $primary;
+                        color: #fff;
+                    }
+                }
+            }
+    
+            ul.list-group {
+                height: 250px;
+                overflow-y: scroll;
+                border: 1px solid #e0e0e0;
+                border-radius: 10px;
+                li {
+                    padding: 8px 10px;
+                    border-bottom: 1px solid #EFEFEF;
+                    font-size: 14px;
+                    &:hover , &.active {
+                        background: rgba(27, 97, 157, 0.1803921569);
+                        cursor: pointer;
+                    }
+                }
+    
+                li.list-group-item {
+                    border-radius: 0;
+                    border: 0;
+                    border-bottom: 1px solid #e0e0e078;
+                }
+            }
+        }
+}

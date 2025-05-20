@@ -1,0 +1,85 @@
+
+
+  div#image_servicecall button#closemodal {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    z-index: 9;
+    font-size: 14px;
+     padding: 10px;
+    background-size: 12px;
+    background-repeat: no-repeat;
+    border-radius: 51%;
+}
+
+.modal-body img.w-100 {
+  max-width: 100%;
+}
+
+.upload_divs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.uploadimg {
+  position: relative;
+}
+.uploadimg input[type="file"] {
+  width: 30px;
+  opacity: 0;
+  position: absolute;
+  z-index: 9;
+}
+span.upload_icon svg , .captureimg svg {
+  width: 24px;
+  height: 24px;
+}
+.image-preview {
+  width: 200px;
+  margin: 20px 0;
+  border: 1px solid #eee;
+  position: relative;
+}
+.image-preview img {
+  width: 100%;
+}
+button.close-btn {
+  position: absolute;
+  border: 1px solid #1b619d;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+  top: -10px;
+  right: -10px;
+  background: #1b619d;
+  color: #fff;
+  border-radius: 50%;
+  padding: 0;
+}
+.custom-line-scroll {
+  overflow: auto;
+  flex-wrap: nowrap;
+}
+.custom-line-scroll img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 112px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+.custom-line-scroll {
+  overflow: auto;
+  flex-wrap: nowrap;
+}
+.custom-line-scroll img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 112px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}

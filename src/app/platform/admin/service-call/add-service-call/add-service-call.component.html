@@ -1,0 +1,574 @@
+<form [formGroup]="createServiceCallForm" autocomplete="off">
+    <ng-container>
+        <div class="row">
+            <div class="col-md-4 mb-3 ">
+                <label for="appelService" class="form-label"> {{ 'HEADER.Service_call' | translate }} </label>
+                <!-- <span class="badge bg-primary form-control">{{ createServiceCallForm.get('servicecallnumber')?.value }}</span> -->
+                <input type="text" formControlName="servicecallnumber" class="form-control blurinputfield"
+                    style="text-transform:uppercase" id="appelService" placeholder="Service Call" readonly>
+            </div>
+            <!-- Reference -->
+            <div class="col-md-2  mb-3">
+                <label for="reference" class="form-label">ref:</label>
+                <input type="text" formControlName="reference" class="form-control" style="text-transform:uppercase"
+                    id="reference" placeholder="ref">
+            </div>
+            <!-- Date de Réception -->
+            <div class="col-md-3  mb-3">
+                <label for="dateReception" class="form-label">{{ 'HEADER.Reception_Date' | translate }}</label>
+                <input type="date" (change)="updateMinToDate()" formControlName="dateReception" [value]="currentDate"
+                    class="form-control" id="dateReception" value="2024-08-28">
+            </div>
+            <!-- Date Placement -->
+            <div class="col-md-3  mb-3">
+                <label for="datePlacement" class="form-label">{{ 'HEADER.PLACEMENT' | translate }}</label>
+                <input type="date" formControlName="datePlacement" [min]="minToDate" [value]="currentDate"
+                    class="form-control" id="datePlacement">
+            </div>
+            <div class="col-md-6  mb-3">
+                <label for="spa" class="form-label">Spa</label>
+                <select class="form-select" formControlName="spa">
+                    <option value="" selected
+                        *ngIf="createServiceCallForm.get('spa')?.value === '' || createServiceCallForm.get('spa')?.value === '0'">
+                        Select Spa</option>
+                    <option *ngFor="let option of spadetail" [value]="option.id">
+                        {{option.value }}
+
+                    </option>
+                </select>
+            </div>
+            <!-- Piscinier -->
+            <div class="col-md-6  mb-3">
+                <label for="piscinier" class="form-label"> {{ 'HEADER.PoolSpecialistNAme' | translate }} </label>
+                <select formControlName="poolspecialist" class="form-select" id="piscinier">
+                    <option value="" selected
+                        *ngIf="createServiceCallForm.get('poolspecialist')?.value === '' || createServiceCallForm.get('poolspecialist')?.value === '0'">
+                        Select Pool Specialist</option>
+                    <option *ngFor="let option of poolspecialist" [value]="option.id">
+                        {{option.name }}
+
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="col-md-6  mb-3" *ngIf="currentLanguage == 'en'">
+                <label for="probleme" class="form-label"> {{ 'SERVICE_CALL.Issue' | translate }} </label>
+                <select formControlName="issueproblem" class="form-select" id="probleme">
+                    <option value="" selected
+                        *ngIf="createServiceCallForm.get('issueproblem')?.value === '' || createServiceCallForm.get('issueproblem')?.value === '0'">
+                        Please select issue.</option>
+                    <option *ngFor="let option of issuedescription" [value]="option.id">
+                        {{option.name }}
+
+                    </option>
+                </select>
+                <div *ngIf="createServiceCallForm.get('issueproblem')?.invalid && (createServiceCallForm.get('issueproblem')?.touched || createServiceCallForm.get('issueproblem')?.dirty)"
+                    class="text-danger">
+                    <span *ngIf="createServiceCallForm.get('issueproblem')?.hasError('required')">Select Issue</span>
+                </div>
+            </div>
+            <div class="col-md-6  mb-3" *ngIf="currentLanguage == 'fr'">
+                <label for="probleme" class="form-label"> {{ 'SERVICE_CALL.Issue' | translate }} </label>
+                <select formControlName="issueproblem" class="form-select" id="probleme">
+                    <option value="" selected
+                        *ngIf="createServiceCallForm.get('issueproblem')?.value === '' || createServiceCallForm.get('issueproblem')?.value === '0'">
+                        Please select issue.</option>
+                    <option *ngFor="let option of issuedescription" [value]="option.id">
+                        {{option.value }}
+
+                    </option>
+                </select>
+                <div *ngIf="createServiceCallForm.get('issueproblem')?.invalid && (createServiceCallForm.get('issueproblem')?.touched || createServiceCallForm.get('issueproblem')?.dirty)"
+                    class="text-danger">
+                    <span *ngIf="createServiceCallForm.get('issueproblem')?.hasError('required')">Select Issue</span>
+                </div>
+            </div>
+            <!-- Statut -->
+            <div class="col-md-6  mb-3" *ngIf="currentLanguage == 'en'">
+                <label for="statut" class="form-label"> {{ 'SERVICE_CALL.Status' | translate }} </label>
+                <select formControlName="status" (change)="onStatusChange($event)" class="form-select" id="statut">
+                    <option value="" selected
+                        *ngIf="createServiceCallForm.get('status')?.value === '' || createServiceCallForm.get('status')?.value === '0'">
+                        Select Status </option>
+                    <option *ngFor="let option of status" [value]="option.id">
+                        {{option.name }}
+
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-6  mb-3" *ngIf="currentLanguage == 'fr'">
+                <label for="statut" class="form-label"> {{ 'SERVICE_CALL.Status' | translate }} </label>
+                <select formControlName="status" (change)="onStatusChange($event)" class="form-select" id="statut">
+                    <option value="" selected
+                        *ngIf="createServiceCallForm.get('status')?.value === '' || createServiceCallForm.get('status')?.value === '0'">
+                        Select Status </option>
+                    <option *ngFor="let option of status" [value]="option.id">
+                        {{option.value }}
+
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-6  mb-3">
+                <label for="notes" class="form-label"> {{ 'HEADER.NOTES' | translate }} </label>
+                <textarea formControlName="notes" class="form-control" style="text-transform:uppercase" id="notes"
+                    rows="3"></textarea>
+            </div>
+
+            <div class="col-md-6  mb-3">
+                <label for="description" class="form-label">{{ 'SERVICE_CALL.ProblemDescription' | translate }}</label>
+                <textarea formControlName="description" class="form-control" style="text-transform:uppercase"
+                    id="description" rows="3"></textarea>
+            </div>
+            <div class="col-md-2 mb-3" *ngIf="uploadImages">                 
+                <label for="image" class="form-label"> {{ 'SERVICE_CALL.UploadImages' | translate }}
+                </label>
+                <div class="upload_divs">
+                    
+                  <div class="uploadimg">
+                    <input type="file" multiple formControlName="images" (change)="onFileChange($event)"  *ngIf="!imagePreview" 
+                    accept="image/jpeg, image/png, image/heic, image/heif" capture="environment" />
+                    <span class="upload_icon" *ngIf="!imagePreview">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+                      </svg>
+                    </span>
+                  </div>
+                  
+                  <!-- Preview for single image -->
+                  <div *ngIf="imagePreview" class="image-preview-container">
+                    <img [src]="imagePreview" alt="Preview" class="img-preview" />
+                    <button type="button" class="btn btn-sm btn-danger remove-img" (click)="removeImage()">
+                      <i class="bi bi-x-circle"></i> Remove
+                    </button>
+                    <div class="upload-status">
+                      <span class="badge bg-success">{{ base64Images.length }} image(s) ready to upload</span>
+                    </div>
+                  </div>
+                </div>
+                
+             </div> 
+             <div class="form-label" *ngIf="showImage">
+             <label for="images" class="form-label"> {{ 'SERVICE_CALL.ImageService' | translate }} </label>
+             <div class="row mb-3 custom-line-scroll"> 
+                
+             <div class="col-md-3" *ngFor="let imageUrl of imageUrls">
+                
+               
+                
+                <img 
+                  [src]="imageUrl" 
+                  alt="Image" 
+                  class="img-fluid" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#image_servicecall" 
+                  (click)="onImageClick(imageUrl)"
+                />
+              </div>
+              </div>
+            </div>
+            <div class="modal fade" id="image_servicecall" tabindex="-1" aria-labelledby="image_servicecall" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-body">
+                      <!-- Display the Selected Image -->
+                      <img [src]="selectedImageUrl" alt="Image" class="w-100">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <!-- <div class="col-md-6  mb-3">
+                <label for="commentaires" class="form-label">{{ 'HEADER.COMMENTS' | translate }}</label>
+                <textarea formControlName="comments" class="form-control" style="text-transform:uppercase"
+                    id="commentaires" rows="3"></textarea>
+            </div> -->
+        </div>
+    </ng-container>
+
+    <div id="loader" class="loader" *ngIf="isLoading">
+        <div class="load">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table mat-table [dataSource]="datasource" class="mat-elevation-z8">
+
+
+                    <ng-container matColumnDef="Technician">
+                        <th mat-header-cell *matHeaderCellDef> {{ 'SERVICE_CALL.TechnicianName' | translate }} </th>
+                        <td mat-cell *matCellDef="let element"> {{element.technician}} </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="Date">
+                        <th mat-header-cell *matHeaderCellDef> {{ 'SERVICE_CALL.VisitDate' | translate }} </th>
+                        <td mat-cell *matCellDef="let element"> {{element.visitDate | date:'yyyy-MM-dd'}} </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="Hours">
+                        <th mat-header-cell *matHeaderCellDef> {{ 'SERVICE_CALL.Hours' | translate }} </th>
+                        <td mat-cell *matCellDef="let element"> {{element.startTime}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Duration">
+                        <th mat-header-cell *matHeaderCellDef> {{ 'SERVICE_CALL.Duration' | translate }} </th>
+                        <td mat-cell *matCellDef="let element"> {{element.duration}} </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="paid">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ 'SERVICE_CALL.Paid' | translate }}
+                        </th>
+                        <td mat-cell *matCellDef="let element">
+                            <mat-checkbox [checked]="!!element.paymentMethod" [disabled]="true"></mat-checkbox>
+                        </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="edit">
+                        <th mat-header-cell *matHeaderCellDef> {{ 'SERVICE_CALL.Edit' | translate }} </th>
+                        <td mat-cell *matCellDef="let element">
+                            <button (click)="editTechnician(element.visitId)" class="btn btn-outline-primary icons"
+                                [disabled]="isDisabled">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="delete">
+                        <th mat-header-cell *matHeaderCellDef> {{ 'HEADER.Delete' | translate }} </th>
+                        <td mat-cell *matCellDef="let element">
+                            <button (click)="deleteTechnician(element.visitId)" [disabled]="isDisabled"
+                                class="btn btn-danger icons">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+
+            </div>
+        </div>
+
+    </div>
+</form>
+<form [formGroup]="createTechnicianForm" autocomplete="off">
+    <ng-container *ngIf="isservicecall">
+        <div class="row">
+            <div class="col-12 my-2  d-flex align-items-end justify-content-end">
+                <button (click)="newvisit()" type="submit" [disabled]="isDisabled" class="btn btn-outline-primary"> {{
+                    'SERVICE_CALL.AddVisit' |
+                    translate }} </button>
+            </div>
+        </div>
+    </ng-container>
+    <ng-container *ngIf="isEditServicecall">
+
+
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label for="technicien" class="form-label"> {{ 'CALENDAR.Technician' | translate }} </label>
+                <select formControlName="technician" class="form-select" id="technicien">
+                    <!-- <option value="" disabled selected>Select Spa</option> -->
+                    <option *ngFor="let option of techniciannamelist" [value]="option.id">
+                        {{option.value }}
+
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label for="dateVisit" class="form-label"> {{ 'SERVICE_CALL.VisitDate' | translate }} </label>
+                <input type="date" formControlName="dateVisit" [value]="currentDate" class="form-control"
+                    id="dateVisit">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label for="heureVisit" class="form-label"> {{ 'SERVICE_CALL.VisitingTime' | translate }} </label>
+                <input type="time" formControlName="hourVisit" class="form-control" id="heureVisit">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label for="duree" class="form-label"> {{ 'SERVICE_CALL.Duration' | translate }} </label>
+                <input type="time" [attr.min]="minDurationTime" formControlName="durationTime" class="form-control" id="duree">
+            </div>
+
+            <!-- <div class="col-md-2 mb-3">
+                <label for="duree" class="form-label"> {{ 'SERVICE_CALL.NextVisit' | translate }} </label>
+                <input type="time" formControlName="durationnextVisit" class="form-control" id="duree">
+            </div> -->
+
+            <div class="col-md-3 mb-3">
+                <label for="bloquerTech" class="form-label hide_label"> {{ 'SERVICE_CALL.BlockTech' | translate }}
+                </label>
+                <div class="form-check">
+                    <input formControlName="bloquerTech" class="form-check-input" type="checkbox" id="bloquerTech">
+                    <label class="form-check-label" for="bloquerTech">
+                        {{ 'SERVICE_CALL.BlockTech' | translate }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label for="photosDossier" class="form-label hide_label"> {{ 'SERVICE_CALL.SpaAccessible' | translate }}
+                </label>
+                <div class="form-check">
+                    <input formControlName="spaAccessible" class="form-check-input" type="checkbox" id="spaAccessible">
+                    <label class="form-check-label" for="spaAccessible">
+                        {{ 'SERVICE_CALL.SpaAccessible' | translate }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label for="photosDossier" class="form-label hide_label"> {{ 'SERVICE_CALL.Photos' | translate }}
+                </label>
+                <div class="form-check">
+                    <input class="form-check-input" formControlName="photosDossier" type="checkbox" id="photosDossier">
+                    <label class="form-check-label" for="photosDossier">
+                        {{ 'SERVICE_CALL.Photos' | translate }}
+                    </label>
+                </div>
+            </div>
+            
+             
+              <!-- Modal Structure -->
+              
+            <ng-container *ngIf="isEditTechniciancall">
+
+                <div class="col-md-2 mb-3">
+                    <label for="photosDossier" class="form-label hide_label"> {{ 'SERVICE_CALL.Complete' | translate }}
+                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" formControlName="complete" form type="checkbox" id="complete">
+                        <label class="form-check-label" for="complete">
+                            {{ 'SERVICE_CALL.Complete' | translate }}
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="photosDossier" class="form-label hide_label"> {{ 'SERVICE_CALL.closedservice' | translate }}
+                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" formControlName="isClosed" type="checkbox" id="closedservice">
+                        <label class="form-check-label" for="closedservice">
+                            {{ 'SERVICE_CALL.closedservice' | translate }}
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label for="bloquerTech" class="form-label hide_label"> {{ 'SERVICE_CALL.Paid' | translate }}
+                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" formControlName="payment" type="checkbox" id="Payee"
+                            (change)="toggleSecondCheckbox($event)">
+                        <label class="form-check-label" for="Payee">
+                            {{ 'SERVICE_CALL.Paid' | translate }}
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3" *ngIf="showSecondCheckbox">
+                    <label for="technicien" class="form-label"> {{ 'SERVICE_CALL.PaymentMethod' | translate }} </label>
+                    <select formControlName="paymentMethod" class="form-select" id="technicien">
+                        <option *ngFor="let option of paymentMethodlist" [value]="option.id">
+                            {{option.value }}
+
+                        </option>
+
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="Invoice" class="form-label"> {{ 'SERVICE_CALL.Invoice' | translate }} </label>
+                    <input type="text" formControlName="invoice" class="form-control" placeholder="{{ 'SERVICE_CALL.Invoice' | translate }}" style="text-transform:uppercase"
+                        id="invoice">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="duree" class="form-label"> {{ 'SERVICE_CALL.NextVisit' | translate }} </label>
+                    <input type="time" formControlName="durationnextVisit" class="form-control" id="duree">
+                </div>
+                <!-- <div class="col-md-3 mb-3" *ngIf="imageUrl">
+                    <label for="duree" class="form-label"> {{ 'SERVICE_CALL.ImageService' | translate }} </label>
+                    <br /><img [src]="imageUrl" alt="Image" class="img-fluid" data-bs-toggle="modal" data-bs-target="#image_servicecall"/>
+                    <div class="modal fade" id="image_servicecall" tabindex="-1" aria-labelledby="image_servicecall"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                <div class="modal-body">
+                                    <img [src]="imageUrl" alt="Image" class="w-100">
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+                
+
+                <div class="col-md-4 mb-3">
+                    <label for="description" class="form-label"> {{ 'SERVICE_CALL.MissingParts' | translate }} </label>
+                    <textarea formControlName="missingParts" class="form-control" style="text-transform:uppercase"
+                        id="description" rows="3"></textarea>
+                </div>
+                <div class="col-md-4  mb-3">
+                    <label for="commentaires" class="form-label"> {{ 'HEADER.NOTES' | translate }} </label>
+                    <textarea formControlName="notes" class="form-control" style="text-transform:uppercase"
+                        id="commentaires" rows="3"></textarea>
+                </div>
+                <!-- <div class="col-md-4  mb-3">
+                    <label for="commentaires" class="form-label"> {{ 'HEADER.COMMENTS' | translate }} </label>
+                    <textarea class="form-control" formControlName="techniciancomments" style="text-transform:uppercase"
+                        id="commentaires" rows="3"></textarea>
+                </div> -->
+            </ng-container>
+            <div class="col-md-2 mb-3">
+                <label for="sPieces" class="form-label"> {{ 'SERVICE_CALL.Pièces' | translate }} </label>
+                <input type="text" formControlName="sPieces" class="form-control" placeholder="0.00">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="sMo" class="form-label"> $ M-O </label>
+                <input type="text" (input)="validatePositiveNumbers($event)" formControlName="sMo" class="form-control"
+                    placeholder="0.00" (input)="calculateSums()">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="sousTotal" class="form-label"> {{ 'SERVICE_CALL.SubTotal' | translate }} </label>
+                <input type="text" (input)="validatePositiveNumbers($event)" formControlName="SousTotal"
+                    class="form-control" placeholder="0.00">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="tps" class="form-label"> TPS </label>
+                <input type="text" (input)="validatePositiveNumbers($event)" formControlName="tps" class="form-control"
+                    placeholder="0.00">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="tvq" class="form-label"> TVQ </label>
+                <input type="text" (input)="validatePositiveNumbers($event)" formControlName="tvq" class="form-control"
+                    placeholder="0.00">
+            </div>
+            <div class="col-md-2 mb-3">
+                <label for="grandTotal" class="form-label"> {{ 'SERVICE_CALL.GrandTotal' | translate }} </label>
+                <input type="text" (input)="validatePositiveNumbers($event)" formControlName="grandtotal"
+                    class="form-control" placeholder="0.00">
+            </div>
+
+
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3 inputfield_withbtn">
+                <div class="inputfield">
+                    <label for="Courrier" class="form-label"> {{ 'SERVICE_CALL.Mail' | translate }} </label>
+                    <input type="text" class="form-control" id="Courrier" [value]="emilAddress" placeholder="Courrier">
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="btnsdiv d-flex gap-2 " style="align-items: flex-end;margin-top: 36px;">
+                    <button (click)="sendmail()" class="btn btn-outline-primary "> {{ 'SERVICE_CALL.Send' | translate }}
+                    </button>
+
+                    <button style="margin-left: auto;" class="btn btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#emailsendModal">
+                        <div *ngIf="isTemplateUpdate === false"> {{ 'SEND_EMAIL.ADD_EMAIL' | translate }} </div>
+                        <div *ngIf="isTemplateUpdate === true"> {{ 'SEND_EMAIL.EDIT_EMAIL' | translate }} </div>
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </ng-container>
+    <div class="row mt-3">
+        <div class="col-12 gap-3 d-flex align-items-end justify-content-end">
+            <button (click)="onSubmit()" type="submit" class="btn btn-primary"> {{ 'HEADER.Register' | translate }}
+            </button>
+        </div>
+    </div>
+</form>
+
+
+<div class="modal fade" id="secondModal" tabindex="-1" aria-labelledby="secondModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="secondModalLabel"> {{'MODAL.ConfirmDelete' | translate }} </h5>
+                <button type="button" id="closedeletemodal" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{'MODAL.DeleteVisit' | translate }}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{ 'MODAL.Cancel' |
+                        translate }} </button>
+                    <button type="button" class="btn btn-danger" (click)="confirmDelete()"> {{ 'HEADER.DELETE' |
+                        translate }} </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="emailsendModal" tabindex="-1" aria-labelledby="transferVisitsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transferVisitsModalLabel"> {{'SEND_EMAIL.EDIT_EMAIL' | translate }} </h5>
+                <button type="button" class="btn-close" id="closeEmailmodel" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- <div id="loader" class="loader" *ngIf="isLoading">
+                    <div class="load">
+                    </div>
+                  </div> -->
+                <form [formGroup]="emailTemplateForm" autocomplete="off">
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1"> {{'SEND_EMAIL.EmailBody' | translate }} </label>
+                        <ckeditor [editor]="editor" formControlName="emailTemplateBody" [config]="configEmailBody"
+                            [data]="dataEmailBody"></ckeditor>
+                        <!-- <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea> -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{'MODAL.Cancel' |
+                            translate }} </button>
+                        <button type="submit" class="btn btn-primary" (click)="onTemplateSubmit()">
+                            <div *ngIf="isTemplateUpdate === false">
+                                {{ 'HEADER.SAVE' | translate }}
+                            </div>
+                            <div *ngIf="isTemplateUpdate === true">
+                                {{'HEADER.UPDATE' | translate }}
+                            </div>
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="serviceCallNumberModal" tabindex="-1" aria-labelledby="secondModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" id="closeserviceCallNumbermodal" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Your service call number is {{servicecallnumber}}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

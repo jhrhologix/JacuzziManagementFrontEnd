@@ -1,0 +1,103 @@
+<div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 login_page p-0">
+
+
+  <div class="row w-100 vh-100">
+    <div class="col-md-6 d-none d-md-flex  imagepart">
+      <div class="">
+        <h2>SOLU<span class="highlight">SPA</span></h2>
+        <p>{{ 'LOGIN.TAGLINE' | translate }}</p>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-sm-12 d-flex align-items-center justify-content-center login_content_side">
+
+      <div id="loader" class="loader" *ngIf="isLoading">
+        <div class="load">
+        </div>
+      </div>
+      <div class="dropdown languageconverter" style="width: 100%; display: flex; justify-content: end; margin-bottom: 15px;">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown"
+          data-bs-toggle="dropdown" aria-expanded="false">
+          {{ translate.currentLang === 'fr' ? 'FRE' : 'ENG' }}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+          <li><a class="dropdown-item" (click)="switchLanguage('fr')">FRE</a></li>
+          <li><a class="dropdown-item" (click)="switchLanguage('en')">ENG</a></li>
+        </ul>
+      </div>
+
+      <div class="login_page_contouter">        
+
+        <div class="card login_page_cont">
+          <h3>{{ 'LOGIN.TITLE' | translate }}<span>
+              <!-- <img src="assets/img/hifi.png" alt=""> -->
+            </span></h3>
+          <p><span>{{ 'LOGIN.SUBTITLE' | translate }}</span>
+            {{ 'LOGIN.DESCRIPTION' | translate }}
+          </p>
+          <form [formGroup]="adminLoginForm" (ngSubmit)="onSubmit()">
+            <!-- Username Field -->
+            <div class="form-group">
+              <label for="username">{{ 'LOGIN.USERNAME_LABEL' | translate }}</label>
+              <input type="text" formControlName="username" class="form-control" id="username"
+                placeholder="{{ 'LOGIN.USERNAME_PLACEHOLDER' | translate }}" autofocus>
+
+              <!-- Validation messages -->
+              <div *ngIf="getFormControl('username').touched && getFormControl('username').invalid" class="text-danger">
+                <div *ngIf="getFormControl('username').errors?.['required']">{{ 'LOGIN.USERNAME_REQUIRED' | translate }}
+                </div>
+                <div *ngIf="getFormControl('username').errors?.['minlength']">{{ 'LOGIN.USERNAME_TOO_SHORT' | translate
+                  }}</div>
+                <div *ngIf="getFormControl('username').errors?.['maxlength']">{{ 'LOGIN.USERNAME_TOO_LONG' | translate
+                  }}</div>
+
+
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group ">
+              <label for="password">{{ 'LOGIN.PASSWORD_LABEL' | translate }}</label>
+              <input type="password" formControlName="password" [type]="hide?'password':'text'" class="form-control"
+                id="password" placeholder="{{ 'LOGIN.PASSWORD_PLACEHOLDER' | translate }}">
+
+              <!-- Password Validation messages -->
+              <div *ngIf="getFormControl('password').touched && getFormControl('password').invalid" class="text-danger">
+                <div *ngIf="getFormControl('password').errors?.['required']">{{ 'LOGIN.PASSWORD_REQUIRED' | translate }}
+                </div>
+                <!-- <div *ngIf="getFormControl('password').errors?.['minlength']">{{ 'LOGIN.PASSWORD_TOO_SHORT' | translate
+                  }}</div> -->
+                <!-- <div *ngIf="getFormControl('password').errors?.['pattern']">{{ 'LOGIN.PASSWORD_INVALID_PATTERN' | translate }}</div> -->
+              </div>
+
+            </div>
+
+            <!-- Forgot Password Link -->
+            <div class="mt-2 text-end">
+              <a  [routerLink]="'/forget-password'" class="text-primary"> {{ 'LOGIN.FORGOT_PASSWORD' | translate }} </a>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="btn btn-primary btn-block mt-4 w-100"
+            > {{ 'LOGIN.LOGIN_BUTTON' | translate
+              }}</button>
+
+          </form>
+
+          <!-- Language Dropdown -->
+          <!-- <div class="dropdown mt-3">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ translate.currentLang === 'fr' ? 'FRE' : 'ENG' }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+              <li><a class="dropdown-item" (click)="switchLanguage('fr')">FRE</a></li>
+              <li><a class="dropdown-item" (click)="switchLanguage('en')">ENG</a></li>
+            </ul>
+          </div> -->
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

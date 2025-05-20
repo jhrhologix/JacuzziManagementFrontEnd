@@ -1,0 +1,201 @@
+@import "./variables";
+
+.btn {
+  font-weight: 400;
+  border-radius: 4px;
+  padding: 7px 30px;
+  &:hover,
+  &:focus,
+  &:active:focus {
+    box-shadow: none;
+  }
+  @media (max-width:667px) {
+    padding: 7px 10px;
+  }
+}
+
+// ************************* Button-Fill-Color *************************//
+// Primary
+.btn.btn-primary {
+  background-color: $primary;
+  border-color: $primary;
+  color: #fff !important;
+  font-size: 16px;
+    font-weight: 700;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $primary !important;
+    border-color: $primary !important;
+  }
+  @media (max-width:1300px) {
+        font-size: 16px;
+  }
+}
+
+// Secondary
+.btn.btn-secondary {
+  background-color: $primary;
+  border-color: $primary;
+  color: #fff !important;
+  font-size: 18px;
+    font-weight: 700;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $primary-dark;
+    border-color: $primary-dark;
+  }
+    @media (max-width:1300px) {
+      font-size: 16px;
+    }
+}
+
+// Danger
+.btn.btn-success {
+  background-color: $success;
+  border-color: $success;
+  color: #fff !important;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $success-dark;
+    border-color: $success-dark;
+  }
+}
+
+// Danger
+.btn.btn-danger {
+  background-color: $danger;
+  border-color: $danger;
+  color: #fff !important;
+  font-size: 18px;
+    font-weight: 700;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $danger-dark;
+    border-color: $danger-dark;
+  }
+    @media (max-width:1300px) {
+      font-size: 16px;
+    }
+}
+
+// Button-Link
+.btn-link {
+  color: $primary;
+  text-decoration: none;
+  border-radius: 0;
+  &:hover {
+    color: $primary-dark;
+  }
+}
+
+// ************************* Button-Outline-Color *************************//
+
+//Primary-Outline
+.btn-outline-primary {
+  color: $primary;
+  border-color: $primary;
+  font-size: 14px;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $primary;
+    border-color: $primary;
+    color: #fff;
+  }
+}
+
+//Secondary-Outline
+.btn-outline-secondary {
+  color: $primary;
+  border-color: $primary;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $primary-dark;
+    border-color: $primary-dark;
+    color: #fff;
+  }
+}
+
+//Success-Outline
+.btn-outline-success {
+  color: $success;
+  border-color: $success;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $success-dark;
+    border-color: $success-dark;
+    color: #fff;
+  }
+}
+
+//Danger-Outline
+.btn-outline-danger {
+  color: $danger;
+  border-color: $danger;
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: $danger-dark;
+    border-color: $danger-dark;
+    color: #fff;
+  }
+}
+
+.btn.disabled,
+.btn:disabled {
+  opacity: 0.35;
+}
+
+//Primary-link for Cancel Button
+.btn-link.cancel-btn.grey-btn {
+  background-color: #d4d4d4;
+  border-color: #70707021;
+  border-radius: 4px;
+  color: $base-color;
+  &:hover {
+    background-color: #dddddd;
+  }
+}
+
+//Primary-Outline for Cancel Button
+.btn-outline-primary.cancel-btn {
+  font-weight: 500;
+}
+
+
+.btn-check:checked+.btn,
+.btn.active,
+.btn.show,
+.btn:first-child:active,
+:not(.btn-check)+.btn:active{
+  background-color: $primary;
+    border-color: $primary;
+    opacity: 0.9;
+}
+
+
+button.btn.icons {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  mat-icon {
+    font-size: 16px;
+    width: auto;
+    height: auto;
+  }
+  &.btn-danger {
+    background: transparent;
+    mat-icon {
+      color: #df4242;
+    }
+  }
+}

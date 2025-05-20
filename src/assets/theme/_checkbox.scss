@@ -1,0 +1,31 @@
+@import "./_variables.scss";
+
+.checkbox-blc {
+    input {
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        opacity: 0;
+    }
+    input:checked + .icon-box {
+        .icon {
+            opacity: 1 !important;
+        }
+    }
+    .icon-box {
+        width: 22px;
+        height: 22px;
+        border: 1px solid #c0cfe4; 
+        border-radius: 3px;
+        .icon {
+            font-size: 15px;
+            opacity: 0;
+        }
+    }
+    &.radio {
+        .icon-box {
+            border-radius: 50%;
+        }
+    }
+}

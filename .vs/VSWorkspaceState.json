@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\app",
+    "\\src\\app\\platform",
+    "\\src\\app\\platform\\admin",
+    "\\src\\app\\platform\\admin\\calendar",
+    "\\src\\app\\platform\\technician",
+    "\\src\\app\\platform\\technician\\spa-details",
+    "\\src\\assets",
+    "\\src\\assets\\i18n"
+  ],
+  "PreviewInSolutionExplorer": false
+}

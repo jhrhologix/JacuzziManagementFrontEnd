@@ -1,0 +1,503 @@
+<section class="account_page">
+    <div class="row">
+        <div class="">
+            <div class="bg-white pt-0">
+                <div class="bg-white btnsdiv d-flex gap-2 justify-content-end">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createUserModal"
+                        (click)="openModal()">{{ 'ACCOUNTS.NEW_USER' | translate }}</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transferVisitsModal">{{ 'ACCOUNTS.Transfer_Visit' | translate }}</button>
+                </div>
+                <div class="bg-white btnsdiv d-flex gap-2 justify-content-end mb-2 small_btn">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#EmailVisitsModal">
+                        <div>{{ 'ACCOUNTS.EDIT_VISIT_EMAIL' | translate }}</div>
+                    </button>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#IsServiceCallClosedModal">
+                        <div>{{ 'ACCOUNTS.EDIT_IsClose_EMAIL' | translate }}</div>
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+
+                        <!-- UserName Column -->
+                        <ng-container matColumnDef="userName">
+                            <th mat-header-cell *matHeaderCellDef> {{ 'LOGIN.USERNAME_LABEL' | translate }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <ng-container *ngIf="!element.isEditing; else editUserName">
+                                    {{ element.userName | uppercase}}
+                                </ng-container>
+                                <ng-template #editUserName>
+                                    <input class="account_user form-control my-2" [(ngModel)]="element.userName"
+                                        disabled />
+                                </ng-template>
+                            </td>
+                        </ng-container>
+
+
+                        <!-- FirstName Column -->
+                        <ng-container matColumnDef="name">
+                            <th mat-header-cell *matHeaderCellDef> {{ 'HEADER.NAME' | translate }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <ng-container *ngIf="!element.isEditing; else editName">
+                                    {{ element.firstName | uppercase}} {{ element.lastName | uppercase}}
+                                </ng-container>
+                                <ng-template #editName>
+                                    <input
+                                        class="account_user form-control my-2"
+                                        [(ngModel)]="element.firstName"
+                                        placeholder= "{{ 'HEADER.FIRST_NAME' | translate }}"
+                                    />
+                                    <input
+                                        class="account_user form-control my-2"
+                                        [(ngModel)]="element.lastName"
+                                        placeholder="{{ 'HEADER.LAST_NAME' | translate }}"
+                                    />
+                                </ng-template>
+                            </td>
+                        </ng-container>
+                
+                        <!-- Assign Days Column -->
+                        <ng-container matColumnDef="assignDays">
+                            <th mat-header-cell *matHeaderCellDef> {{ 'ACCOUNTS.AssignDays' | translate }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <ng-container *ngIf="!element.isEditing; else editAssignDays">
+                                    {{ element.assignDays || '-' }}
+                                </ng-container>
+                                <ng-template #editAssignDays>
+                                    <input
+                                        class="account_user form-control my-2"
+                                        [(ngModel)]="element.assignDays"
+                                        (ngModelChange)="onAssignDaysChange(element)"
+                                        placeholder="{{ 'ACCOUNTS.AssignDays' | translate }}"
+                                        [min]="0"
+                                        [max]="10"
+                                        type="number"
+                                    />
+                                    <div *ngIf="element.assignDays < 0 || element.assignDays > 10" class="error-text">
+                                        Assign days must be between 0 and 10.
+                                    </div>
+                                </ng-template>
+                            </td>
+                        </ng-container>
+                        
+                
+
+
+                        <!-- Email Column -->
+                        <ng-container matColumnDef="email">
+                            <th mat-header-cell *matHeaderCellDef> {{ 'HEADER.EMAIL' | translate }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <ng-container *ngIf="!element.isEditing; else editEmail">
+                                    {{ element.email | uppercase}}
+                                </ng-container>
+                                <ng-template #editEmail>
+                                    <input class="account_user form-control my-2" [(ngModel)]="element.email" />
+                                </ng-template>
+                            </td>
+                        </ng-container>
+
+                        <!-- Role Column -->
+                        <ng-container matColumnDef="roleName">
+                            <th mat-header-cell *matHeaderCellDef> {{ 'ACCOUNTS.ROLE' | translate }} </th>
+                            <td mat-cell *matCellDef="let element">
+                                <ng-container *ngIf="!element.isEditing; else editRole">
+                                    {{ element.roleName | uppercase}}
+                                </ng-container>
+                                <ng-template #editRole>
+                                    <select class="account_user form-select my-2" [(ngModel)]="element.roleId">
+                                        <option *ngFor="let role of roles" [value]="role.roleId">{{ role.roleName | uppercase}}</option>
+                                    </select>
+                                </ng-template>
+                            </td>
+                        </ng-container>
+
+                        <!-- Active Checkbox Column -->
+                        <ng-container matColumnDef="isDeleted">
+                            <th mat-header-cell *matHeaderCellDef>{{ 'ACCOUNTS.ACTIVE' | translate }}</th>
+                            <td mat-cell *matCellDef="let element">
+                                <div class="modify_div">
+                                    <input class="form-check-input" [checked]="element.isActive"
+                                        (change)="onCheckboxChange($event, element)" [disabled]="!element.isEditing"
+                                        type="checkbox" />
+                                    <a (click)="toggleEdit(element)">
+                                        {{ element.isEditing ? ('HEADER.SAVE' | translate) : ('ACCOUNTS.Modify' | translate) }}
+                                    </a>
+                                    <a (click)="cancelEdit(element)" *ngIf="element.isEditing">
+                                        |
+                                        {{ 'MODAL.Cancel' | translate }}
+                                    </a>
+                                    |
+                                    <a (click)="confirmDelete(element)" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"> {{ 'HEADER.DELETE' | translate }} </a> |
+                                    <a (click)="changePasswordModal(element)" data-bs-toggle="modal"
+                                        data-bs-target="#changePassword"> {{ 'Technician.ChangePassword' | translate }} </a> |
+                                    <a (click)="lockUser(element)">
+                                        {{ element.isLocked ? ('ACCOUNTS.Unlock' | translate) : ('ACCOUNTS.Lock' | translate) }} </a>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Header Row -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <!-- Data Rows -->
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    </table>                  
+
+                </div>
+                 <!-- Paginator -->
+                 <mat-paginator showFirstLastButtons></mat-paginator>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="loader" class="loader" *ngIf="isLoading">
+    <div class="load">
+    </div>
+</div>
+
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> {{'ACCOUNTS.CreateNewUser' | translate }} </h5>
+                <button type="button" id="createUserModalLabel" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="createUserForm" (ngSubmit)="onSubmit()">
+                    <div class="mb-2">
+                        <label for="lastName" class="form-label"> {{ 'HEADER.LAST_NAME' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="text" class="form-control" id="lastName" formControlName="lastName"
+                            placeholder=" {{ 'PLACEHOLDER.EnterLname' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('lastName')?.invalid && createUserForm.get('lastName')?.touched}">
+                        <div *ngIf="createUserForm.get('lastName')?.invalid && createUserForm.get('lastName')?.touched"
+                            class="invalid-feedback"> {{ 'HEADER.REQUIRED_LastName' | translate }} </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="firstName" class="form-label"> {{ 'HEADER.FIRST_NAME' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="text" class="form-control" id="firstName" formControlName="firstName"
+                            placeholder=" {{ 'PLACEHOLDER.EnterFname' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('firstName')?.invalid && createUserForm.get('firstName')?.touched}">
+                        <div *ngIf="createUserForm.get('firstName')?.invalid && createUserForm.get('firstName')?.touched"
+                            class="invalid-feedback"> {{ 'HEADER.REQUIRED_FirstName' | translate }} </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="userName" class="form-label"> {{ 'LOGIN.USERNAME_LABEL' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="text" class="form-control" id="userName" formControlName="userName"
+                            placeholder=" {{ 'PLACEHOLDER.EnterUser' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('userName')?.invalid && createUserForm.get('userName')?.touched}">
+                        <div *ngIf="createUserForm.get('userName')?.invalid && createUserForm.get('userName')?.touched"
+                            class="invalid-feedback"> {{ 'HEADER.REQUIRED_Username' | translate }} </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="password" class="form-label"> {{ 'LOGIN.PASSWORD_LABEL' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="password" class="form-control" id="password" formControlName="Password"
+                            maxlength="15" placeholder=" {{ 'PLACEHOLDER.EnterPass' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('Password')?.invalid && createUserForm.get('Password')?.touched}" />
+                        <div *ngIf="createUserForm.get('Password')?.touched && createUserForm.get('Password')?.errors"
+                            class="invalid-feedback">
+                            {{ createUserForm.get('Password')?.errors?.['required'] 
+                            ? ('HEADER.REQUIRED_Pass' | translate) 
+                            : ('HEADER.REQUIRED_PassLength' | translate) }}
+                        
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="confirmPassword" class="form-label"> {{ 'LOGIN.ConfirmPassword' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="password" class="form-control" id="confirmPassword" maxlength="15"
+                            formControlName="confirmPassword" placeholder=" {{ 'PLACEHOLDER.ConfirmPass' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('confirmPassword')?.invalid && createUserForm.get('confirmPassword')?.touched}">
+                        <div *ngIf="createUserForm.hasError('mismatch') && createUserForm.get('confirmPassword')?.touched"
+                            class="text-danger">
+                            {{ 'HEADER.REQUIRED_CPass' | translate }}
+
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="email" class="form-label"> {{ 'HEADER.EMAIL' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="email" class="form-control" id="email" formControlName="email"
+                            placeholder=" {{ 'PLACEHOLDER.EnterEmail' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('email')?.invalid && createUserForm.get('email')?.touched}">
+                        <div *ngIf="createUserForm.get('email')?.invalid && createUserForm.get('email')?.touched"
+                            class="invalid-feedback"> {{ 'HEADER.REQUIRED_Email' | translate }} </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="role" class="form-label"> {{ 'ACCOUNTS.ROLE' | translate }} </label>
+                        <select class="form-select" id="role" formControlName="roleId"
+                            [ngClass]="{'is-invalid': createUserForm.get('roleId')?.invalid && createUserForm.get('roleId')?.touched}">
+                            <option value="" disabled>Select role</option>
+                            <option *ngFor="let role of roles" [value]="role.roleId">{{ role.roleName | uppercase }}
+                            </option>
+                        </select>
+                        <div *ngIf="createUserForm.get('roleId')?.invalid && createUserForm.get('roleId')?.touched"
+                            class="invalid-feedback">
+                            {{ 'HEADER.REQUIRED_Role' | translate }}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="secretQuestion" class="form-label">
+                            {{ 'ACCOUNTS.SecreatQuestion' | translate }}
+                        </label>
+                        <select 
+                            class="form-select my-2 w-100"
+                            id="secretQuestion"
+                            formControlName="secretQuestion"
+                            [ngClass]="{'is-invalid': createUserForm.get('secretQuestion')?.invalid && createUserForm.get('secretQuestion')?.touched}">
+                            <option value="" disabled>Select Question </option>
+                            <option *ngFor="let question of questions" [value]="question.id">
+                                {{ question.name | uppercase }}
+                            </option>
+                        </select>
+                        <div *ngIf="createUserForm.get('secretQuestion')?.invalid && createUserForm.get('secretQuestion')?.touched" class="invalid-feedback">
+                            {{ 'HEADER.REQUIRED_Question' | translate }}
+                        </div>
+                    </div>
+                    <!-- <div class="mb-2">
+                        <label for="secretQuestion" class="form-label"> {{ 'ACCOUNTS.SecreatQuestion' | translate }}  </label>
+                        <select class="account_user form-select my-2 w-100" formControlName="secretQuestion"
+                        [ngClass]="{'is-invalid': createUserForm.get('id')?.invalid && createUserForm.get('id')?.touched}">
+                            <option value="" disabled>Select Question</option>
+                            <option *ngFor="let question of questions" [value]="question.id">{{ question.name | uppercase}}</option>
+                        </select>
+                        
+                        <div *ngIf="createUserForm.get('secretQuestion')?.invalid && createUserForm.get('secretQuestion')?.touched"
+                            class="invalid-feedback"> {{ 'HEADER.REQUIRED_Question' | translate }} </div>
+                    </div> -->
+                    <div class="mb-2">
+                        <label for="answer" class="form-label"> {{ 'ACCOUNTS.Answer' | translate }}  </label>
+                        <input (keypress)="blockwhitespaces($event)" type="text" class="form-control" id="answer" formControlName="answer"
+                            placeholder=" {{ 'PLACEHOLDER.EnterAns' | translate }} "
+                            [ngClass]="{'is-invalid': createUserForm.get('answer')?.invalid && createUserForm.get('answer')?.touched}">
+                        <div *ngIf="createUserForm.get('answer')?.invalid && createUserForm.get('answer')?.touched"
+                            class="invalid-feedback"> {{ 'HEADER.REQUIRED_Answer' | translate }} </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{ 'MODAL.Cancel' | translate }} </button>
+                        <button type="submit" class="btn btn-primary"> {{ 'ACCOUNTS.CreateNewUser' | translate }} </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="transferVisitsModal" tabindex="-1" aria-labelledby="transferVisitsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transferVisitsModalLabel"> {{ 'ACCOUNTS.Transfer_Visit' | translate }}  </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="resetFields()"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="transferFrom" class="form-label"> {{ 'ACCOUNTS.From' | translate }}  </label>
+                        <select class="form-select" id="transferFrom" [(ngModel)]="selectedOldTechnicianId"
+                            name="transferFrom">
+                            <option value="" disabled selected>Select Technician</option>
+                            <!-- Loop through technician names to populate the dropdown -->
+                            <option *ngFor="let technician of techniciannamelist" [value]="technician.id">
+                                {{ technician.value | uppercase}}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transferTo" class="form-label"> {{ 'ACCOUNTS.To' | translate }}  </label>
+                        <select class="form-select" id="transferTo" [(ngModel)]="selectedNewTechnicianId"
+                            name="transferTo">
+                            <option value="" disabled selected>Select Technician</option>
+                            <!-- Loop through technician names to populate the dropdown -->
+                            <option *ngFor="let technician of techniciannamelist" [value]="technician.id">
+                                {{technician.value | uppercase}}</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                            (click)="resetFields()"> {{ 'MODAL.Cancel' | translate }} </button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+                            data-bs-target="#confirmModal"> {{ 'HEADER.SAVE' | translate }} </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<div class="modal fade" id="changePassword" tabindex="-1" aria-labelledby="changePasswordlabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordlabel"> {{ 'Technician.ChangePassword' | translate }}  </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="changePasswordForm" (ngSubmit)="onChangePasswordSubmit()">
+                    <div class="mb-2">
+                        <label for="UserName" class="form-label"> {{ 'PLACEHOLDER.EnterUser' | translate }}  </label>
+                        <input (keypress)="blockwhitespaces($event)" type="text" id="UserName" readonly formControlName="userName"
+                            placeholder="{{ 'PLACEHOLDER.EnterUser' | translate }}" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label for="newpass" class="form-label"> {{ 'Technician.NewPass' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="password" id="newpass" formControlName="Password" maxlength="15"
+                            placeholder=" {{ 'Technician.NewPass' | translate }}" class="form-control"
+                            [ngClass]="{'is-invalid': changePasswordForm.get('Password')?.invalid && changePasswordForm.get('Password')?.touched}" />
+                        <div *ngIf="changePasswordForm.get('Password')?.touched && changePasswordForm.get('Password')?.errors"
+                            class="invalid-feedback">
+                            {{ changePasswordForm.get('Password')?.errors?.['required'] ? 'Password is required.' :
+                            'Password must be at least 6 characters long.' }}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="confirmpass" class="form-label">  {{ 'Technician.ChangePassword' | translate }} </label>
+                        <input (keypress)="blockwhitespaces($event)" type="password" id="confirmpass" formControlName="confirmPassword" maxlength="15"
+                            placeholder=" {{ 'Technician.ChangePassword' | translate }} " class="form-control">
+                        <div *ngIf="changePasswordForm.hasError('mismatch') && changePasswordForm.get('confirmPassword')?.touched"
+                            class="text-danger">
+                            {{ 'Technician.DiffPassValidation' | translate }}
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{ 'MODAL.Cancel' | translate }} </button>
+                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal"
+                            [disabled]="!changePasswordForm.valid"> {{ 'HEADER.SAVE' | translate }} </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="secondModalLabel"> {{ 'MODAL.ConfirmDelete' | translate }} </h5>
+                <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ 'MODAL.DeleteUser' | translate }}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{ 'MODAL.Cancel' | translate }} </button>
+                    <button type="button" class="btn btn-danger" (click)="onDeleteConfirm()"> {{ 'HEADER.DELETE' | translate }} </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<nav class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="secondModalLabel"> {{ 'MODAL.ConfirmTransfer' | translate }} </h5>
+                <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ 'MODAL.TransferVisit' | translate }}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+                        (click)="resetFields()"> {{ 'MODAL.Cancel' | translate }} </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        (click)="transferVisit()"> {{ 'MODAL.Confirm' | translate }} </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<div class="modal fade" id="EmailVisitsModal" tabindex="-1" aria-labelledby="EmailVisitsModal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transferVisitsModalLabel"> {{'SEND_EMAIL.EDIT_EMAIL_TEMPLATE' | translate }} </h5>
+                <button type="button" id="EmailVisitsModalclose" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="loader" class="loader" *ngIf="isLoading">
+                    <div class="load">
+                    </div>
+                  </div>
+                <form [formGroup]="emailTemplateForm" autocomplete="off">
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1"> {{'SEND_EMAIL.EmailBody' | translate }} </label>
+                        <ckeditor [editor]="editor" formControlName="SMSTemplateBody" [config]="configEmailBody" [data]="dataSMSBody"></ckeditor>
+                        <!-- <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea> -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{'MODAL.Cancel' | translate }} </button>
+                        <button type="submit" class="btn btn-primary" (click)="onTemplateSubmit()">
+                           <div *ngIf="isTemplateUpdate === false">
+                            {{'HEADER.SAVE' | translate }}
+                           </div> 
+                           <div *ngIf="isTemplateUpdate === true">
+                            {{'HEADER.Update' | translate }}
+                           </div> 
+                        </button>
+                    </div>
+                    
+                </form>
+             
+            </div>            
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="IsServiceCallClosedModal" tabindex="-1" aria-labelledby="IsServiceCallClosedModal"
+aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="IsServiceCallClosedModalcloseLabel"> {{'SEND_EMAIL.EDIT_EMAIL_TEMPLATE' | translate }} </h5>
+            <button type="button" id="IsServiceCallClosedModalclose" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div id="loader" class="loader" *ngIf="isLoading">
+                <div class="load">
+                </div>
+              </div>
+            <form [formGroup]="emailTemplateForm" autocomplete="off">
+                <div class="form-group">
+                    <label for="exampleFormControlTextarea1"> {{'SEND_EMAIL.EmailBody' | translate }} </label>
+                    <ckeditor [editor]="editor1" formControlName="dataCloseServiceCallBody" [config]="configEmailBody1" [data]="dataCloseServiceCallBody"></ckeditor>
+                    <!-- <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea> -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{'MODAL.Cancel' | translate }} </button>
+                    <button type="submit" class="btn btn-primary" (click)="onCloseServiceCallTemplateSubmit()">
+                       <div *ngIf="isTemplateUpdate === false">
+                        {{'HEADER.SAVE' | translate }}
+                       </div> 
+                       <div *ngIf="isTemplateUpdate === true">
+                        {{'HEADER.Update' | translate }}
+                       </div> 
+                    </button>
+                </div>
+                
+            </form>
+         
+        </div>            
+    </div>
+</div>
+</div>
