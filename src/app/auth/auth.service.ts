@@ -27,7 +27,19 @@ export class AuthService {
     return !!localStorage.getItem('jwtToken'); // Check if token exists
   }
   login(loginDetails: any): Observable<any> {
-    return this.httprequest.post(`${environment.apiUrl}/api/Auth/login`, loginDetails);
+    console.log('Login request to:', `${environment.apiUrl}/api/Auth/login`);
+    console.log('Login details:', JSON.stringify(loginDetails));
+    
+    // Create credentials in expected format
+    const loginRequest = {
+      username: loginDetails.username,
+      password: loginDetails.password
+    };
+    
+    return this.httprequest.post(
+      `${environment.apiUrl}/api/Auth/login`, 
+      loginRequest
+    );
   }
 
   refreshToken(): Observable<any> {

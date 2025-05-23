@@ -189,15 +189,40 @@ export class ClientComponent {
     })
   }
   convertToken(token: any) {
+    if (!token) {
+      console.log('No token provided to convert');
+      return;
+    }
     
-    this.adminToken = this.commonservice.decrypt(token);
-    this.adminToken = this.adminToken.split('$'); // Assuming there's more than one part
-    const clientIdString = this.adminToken[0]; // Adjust index if needed
-    const parsedClientId = JSON.parse(clientIdString);
-    this.clientid = parsedClientId.clientId;
-    this.edit = parsedClientId.data;
-    if(this.edit === 'edit'){
-      this.selectClient(this.clientid);
+    try {
+      this.adminToken = this.commonservice.decrypt(token);
+      if (!this.adminToken) {
+        console.log('Failed to decrypt token');
+        return;
+      }
+      
+      this.adminToken = this.adminToken.split('$'); // Assuming there's more than one part
+      if (!this.adminToken || this.adminToken.length === 0) {
+        console.log('Invalid token format after split');
+        return;
+      }
+      
+      const clientIdString = this.adminToken[0]; // Adjust index if needed
+      if (!clientIdString) {
+        console.log('Missing client ID in token');
+        return;
+      }
+      
+      const parsedClientId = JSON.parse(clientIdString);
+      if (parsedClientId && parsedClientId.clientId) {
+        this.clientid = parsedClientId.clientId;
+        this.edit = parsedClientId.data;
+        if(this.edit === 'edit'){
+          this.selectClient(this.clientid);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing token:', error);
     }
   }
   
@@ -209,97 +234,72 @@ onChange(){
 }
 selectClient(event : any){
   
-  this.isButtonDisabled  = false;
-  this.isSearchtable = false;
-  this.selectedClient1 =false;
-  this.isDeleteButtonDisabled = false;
- 
- if(this.edit === 'edit'){
-  this.clientservice.getClientDataById(this.clientid ).subscribe((response : any) => {
-    if(response.isSuccess == true)
-    {
-      
-      this.selectedClient = response?.value;
-      if(this.filterValue != '' && this.filterValue!=undefined){
-        this.getClientById();
-      }
-      
-      //this.clientlist=this.selectedClient[0];
-      
-      this.blacklist = response?.value[0].blackList;
-      if(this.blacklist == true){
-        this.isBlackListed = true;
-      }
-      else{
-        this.isBlackListed = false;
-      }
-      
-      this.clientForm.patchValue(this.selectedClient[0]);
-      if (!response?.value[0].house || !response?.value[0].streetNumber) {
-        this.clientForm.patchValue({
-          house: '2'
-        });
-      }
-      
-      this.isAddingNewClient=true;
-      this.getOldServiceCall();
-      this.getUpcomingServiceCall();
-      this.getSpaDetails();
-      this.isClientSelected = true;
-      this.enableFormFields();
-      this.edit = ''
-    }
-
-    else 
-    {
-      this.clientForm.reset();
-      this.isClientSelected = false;
-    }
-  })
- }
+  this.isButtonDisabled = false;
+  
+  if(event == 'Yes'){
+    this.isSearchtable = false;
+    this.searchQuery= '';
+  }
   else
   {
-    this.clientid = event.clientID;
-    this.clientservice.getClientDataById(this.clientid ).subscribe((response : any) => {
-      if(response.isSuccess == true)
-      {
-        
-        this.selectedClient = response?.value;
-        if(this.filterValue != '' && this.filterValue!=undefined){
-          this.getClientById();
+    console.log('Select client event:', event);
+    // Convert clientID to clientId if needed
+    this.clientid = event.clientID || event.ClientID || event;
+    console.log('Using client ID:', this.clientid);
+    
+    this.clientservice.getClientDataById(this.clientid).subscribe({
+      next: (response : any) => {
+        console.log('Client data response:', response);
+        if(response.isSuccess == true || response.Value)
+        {
+          // Handle both lowercase 'value' and uppercase 'Value'
+          this.selectedClient = response?.value || response?.Value || [];
+          console.log('Selected client data:', this.selectedClient);
+          
+          if(this.filterValue != '' && this.filterValue!=undefined){
+            this.getClientById();
+          }
+          
+          this.blacklist = (response?.value || response?.Value || [])[0]?.blackList;
+          if(this.blacklist == true){
+            this.isBlackListed = true;
+          }
+          else{
+            this.isBlackListed = false;
+          }
+          
+          if (this.selectedClient && this.selectedClient.length > 0) {
+            console.log('Patching form with data:', this.selectedClient[0]);
+            this.clientForm.patchValue(this.selectedClient[0]);
+            if (!this.selectedClient[0].house || !this.selectedClient[0].streetNumber) {
+              this.clientForm.patchValue({
+                house: '2'
+              });
+            }
+          } else {
+            console.error('No client data available to display');
+          }
+          
+          this.isAddingNewClient=true;
+          this.getOldServiceCall();
+          this.getUpcomingServiceCall();
+          this.getSpaDetails();
+          this.isClientSelected = true;
+          this.enableFormFields();
         }
-        
-        
-        this.blacklist = response?.value[0].blackList;
-        if(this.blacklist == true){
-          this.isBlackListed = true;
+        else 
+        {
+          console.error('Failed to get client data, isSuccess=false');
+          this.clientForm.reset();
+          this.isClientSelected = false;
         }
-        else{
-          this.isBlackListed = false;
-        }
-        
-        this.clientForm.patchValue(this.selectedClient[0]);
-        if (!response?.value[0].house || !response?.value[0].streetNumber) {
-          this.clientForm.patchValue({
-            house: '2'
-          });
-        }
-        
-        this.isAddingNewClient=true;
-        this.getOldServiceCall();
-        this.getUpcomingServiceCall();
-        this.getSpaDetails();
-        this.isClientSelected = true;
-        this.enableFormFields();
-  
-      }
-  
-      else 
-      {
+      },
+      error: (err) => {
+        console.error('Error fetching client data:', err);
         this.clientForm.reset();
         this.isClientSelected = false;
       }
-    })
+    });
   }
 }
 
@@ -374,7 +374,7 @@ createformgroup1(){
   getAllProvinces() {
     this.clientservice.getAllProvinces().subscribe((response: any) => {
       if (response.isSuccess == true) {
-        this.provinces = response.value;
+        this.provinces = response.value || response.Value || [];
       }
     });
   }
@@ -444,10 +444,9 @@ applyFilter(event: any) {
       .getOldServiceCall(this.clientid)
       .subscribe((response: any) => {
         if (response) {
-          this.dataSource.data = response.value;
+          this.dataSource.data = response.value || response.Value || [];
           this.dataSource.paginator = this.oldServicePaginator;
-          this.OldServiceCall = response.value;
-          //this.selectedClient = true;
+          this.OldServiceCall = response.value || response.Value || [];
           this.isAddingNewClient = true;
         }
       });
@@ -486,23 +485,56 @@ applyFilter(event: any) {
     this.clientservice.getClientById(this.clientid ).subscribe((response : any) => {
       if(response.isSuccess == true)
       {
-        this.clientlist=response.value;
-        }
+        this.clientlist = response.value || response.Value || [];
+      }
     })
   }
 
 
   getAllClientList() {
     
-    this. isLoading = true;
+    this.isLoading = true;
+    console.log('Fetching client list...');
     setTimeout(() => {
     this.clientservice
       .getAllClientList()
-      .subscribe((response: any) => {
-        if (response.isSuccess == true) {
-          this.clientlist = response.value;
+      .subscribe({
+        next: (response: any) => {
+          console.log('Raw API response:', response);
+          if (response && (response.isSuccess === true || response.Value)) {
+            // Handle both lowercase 'value' and uppercase 'Value'
+            let clientData = response.value || response.Value || [];
+            console.log('Client data extracted:', clientData);
+            
+            // Transform data if needed to match expected format
+            if (clientData.length > 0 && 'ClientID' in clientData[0]) {
+              console.log('Transforming field names from uppercase to lowercase');
+              this.clientlist = clientData.map((client: any) => ({
+                clientID: client.ClientID,
+                clientNumber: client.ClientNumber,
+                firstName: client.FirstName,
+                lastName: client.LastName,
+                totalRecords: client.TotalRecords || 0
+              }));
+            } else {
+              this.clientlist = clientData;
+            }
+            
+            console.log('Final client list:', this.clientlist);
+            
+            // Update the MatTableDataSource
+            const dataSource = new MatTableDataSource<any>(this.clientlist);
+            Object.assign(this.clientlist, { data: this.clientlist, paginator: this.oldServicePaginator });
+          } else {
+            console.error('Invalid response format:', response);
+            this.clientlist = [];
+          }
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error fetching client list:', err);
+          this.isLoading = false;
         }
-        this. isLoading = false;
       });
     }, 100);
   }
@@ -567,7 +599,7 @@ applyFilter(event: any) {
           }
           this.getAllClientList();
           this.clientForm.reset({
-            house: '1',
+            house: '2',
             province: '9',
             //area: '',
           });
@@ -632,10 +664,13 @@ addnewSpaDetail(){
   }, 500);
 }
   getSpaBrand() {
-    ;
     this.clientservice.getSpaBrand().subscribe((response: any) => {
-      if (response) {        
-        this.spaBrands = response.data.sort((a: { id: number; value: string }, b: { id: number; value: string }) => a.value.localeCompare(b.value));     
+      if (response && response.data) {        
+        this.spaBrands = response.data.sort((a: { id: number; value: string }, b: { id: number; value: string }) => 
+          a?.value && b?.value ? a.value.localeCompare(b.value) : 0);     
+      } else if (response && (response.value || response.Value)) {
+        this.spaBrands = (response.value || response.Value).sort((a: { id: number; value: string }, b: { id: number; value: string }) => 
+          a?.value && b?.value ? a.value.localeCompare(b.value) : 0);
       }
     });
   }
@@ -644,22 +679,31 @@ addnewSpaDetail(){
   getSpaModel(brandId:any){
     this.spaBrandId = brandId;
     this.clientservice.getSpaModelByBrand(this.spaBrandId).subscribe((response: any) => {
-      if (response){
-        this.spaModel = response.data.sort((a: { id: number; value: string }, b: { id: number; value: string }) => a.value.localeCompare(b.value));
+      if (response && response.data){
+        this.spaModel = response.data.sort((a: { id: number; value: string }, b: { id: number; value: string }) => 
+          a?.value && b?.value ? a.value.localeCompare(b.value) : 0);
       }
     });
   }
 
   onSpaBrandChange(event: any): void {
     const selectedValue = (event.target as HTMLSelectElement).value;
-    const value = parseInt(selectedValue, 10);
-    this.getSpaModel(value);
-   }
+    if (selectedValue) {
+      const value = parseInt(selectedValue, 10);
+      if (!isNaN(value)) {
+        this.getSpaModel(value);
+      }
+    }
+  }
 
   getPoolSpecialist() {
     this.clientservice.getPoolSpecialist().subscribe((response: any) => {
-      if (response) {
-        this.poolSpecialist = response.data.sort((a: { id: number; value: string }, b: { id: number; value: string }) => a.value.localeCompare(b.value));
+      if (response && response.data) {
+        this.poolSpecialist = response.data.sort((a: { id: number; value: string }, b: { id: number; value: string }) => 
+          a?.value && b?.value ? a.value.localeCompare(b.value) : 0);
+      } else if (response && (response.value || response.Value)) {
+        this.poolSpecialist = (response.value || response.Value).sort((a: { id: number; value: string }, b: { id: number; value: string }) => 
+          a?.value && b?.value ? a.value.localeCompare(b.value) : 0);
       }
     });
   }

@@ -1,27 +1,50 @@
-# Jacuzzimanagementfrontend
+# Jacuzzi Management System
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.3.
+Frontend application for managing jacuzzi/spa service calls, clients, and technician operations.
 
-## Development server
+## Features
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Client management system
+- Service call tracking
+- Technician dispatch and scheduling
+- Spa/Jacuzzi information management
+- Multilingual support (English and French)
+- Image upload for service call documentation
 
-## Code scaffolding
+## Installation
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+1. Clone the repository
+   ```
+   git clone https://github.com/jhrhologix/JacuzziManagementFrontEnd.git
+   cd JacuzziManagementFrontEnd
+   ```
 
-## Build
+2. Install dependencies
+   ```
+   npm install
+   ```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+3. Run the development server
+   ```
+   ng serve
+   ```
 
-## Running unit tests
+4. Build for production
+   ```
+   ng build
+   ```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Technology Stack
 
-## Running end-to-end tests
+- Angular
+- TypeScript
+- Material UI
+- Bootstrap
+- SCSS
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Recent Improvements
 
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Fixed image upload functionality in admin interface
+- Added default spa brand and model selection
+- Alphabetical ordering of dropdown options
+- UI improvements for better user experience

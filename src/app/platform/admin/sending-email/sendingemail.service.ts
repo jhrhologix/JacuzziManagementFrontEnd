@@ -13,6 +13,7 @@ export class SendingemailService {
   getEmailTemplateURL='api/EmailSechedule/GetEmailTemplate?templateId=';
   sendConfirmationEmailURL='api/EmailSechedule/SendEmail';
   getSMSTemplateURL = 'api/EmailSechedule/GetSMSTemplate?templateId='
+  sendSMSURL = 'api/EmailSechedule/SendSMS';
   constructor(
     private httprequest : HttpClient
 
@@ -38,5 +39,9 @@ export class SendingemailService {
 
   SendEmailConfirmation(model:any){
     return this.httprequest.post(`${environment.apiUrl}/${this.sendConfirmationEmailURL}`,model)
+  }
+
+  sendSMS(model: any) {
+    return this.httprequest.post(`${environment.apiUrl}/${this.sendSMSURL}`, model);
   }
 }

@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -72,6 +72,16 @@ return this.httprequest.post(`${environment.apiUrl}/${this.updateClientURL}`,mod
     return this.httprequest.get(`${environment.apiUrl}/${this.getAllspaModelUrl}`)
   }
   getSpaModelByBrand(brandId: number){
+    // Ensure brandId is a valid number
+    if (brandId === undefined || brandId === null || isNaN(brandId)) {
+      console.error('Invalid brand ID provided to getSpaModelByBrand:', brandId);
+      // Return an empty observable with a properly formatted response
+      return of({
+        StatusCode: 200,
+        Message: "Success",
+        data: []
+      });
+    }
     return this.httprequest.get(`${environment.apiUrl}/${this.getSpaBrandUrl}${brandId}`);
   }
   getPoolSpecialist(){

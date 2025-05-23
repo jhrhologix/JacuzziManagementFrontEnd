@@ -1,8 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
  import { CommonModule } from '@angular/common';
 import { SendingemailService } from './sendingemail.service';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-
 import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
@@ -10,6 +9,7 @@ import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 import { TemplateEmailModel } from './template-email-model';
 import { ToastrService } from 'ngx-toastr';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 export interface SendEmailElements {
   selectrow: boolean;
@@ -19,16 +19,6 @@ export interface SendEmailElements {
   email: string;
 }
 
-
-
-
-export interface SendEmailElements {
-  selectrow: boolean;
-  client: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
 export interface EmailTemplateModel {
   masterEmailTemplateId: number;
   emailTemplateName: string;
@@ -37,9 +27,21 @@ export interface EmailTemplateModel {
   createdBy:  number;
   modifiedBy: number;
   isActive: boolean;
-
 }
 
+interface Client {
+  clientId: number;
+  clientNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  emailClient: boolean;
+  sms: boolean;
+  mobileNumber: string;
+  selectrow: boolean;
+  sMS: boolean;
+  emailSend: boolean;
+}
 
 @Component({
   selector: 'app-sending-email',
@@ -48,13 +50,14 @@ export interface EmailTemplateModel {
   templateUrl: './sending-email.component.html',
   styleUrl: './sending-email.component.scss',
 })
-export class SendingEmailComponent {
+export class SendingEmailComponent implements OnInit {
   showTable: boolean = false;
   date: any;
   emailSendForm : FormGroup;
   emailTemplateForm : FormGroup;
+  smsTemplateForm : FormGroup;
   visitDate : Date | undefined;
-  clientList: any[]=[];
+  clientList: Client[] = [];
   templateDataList: any[]=[];
   convertedDate: any;
   name = 'Angular';
@@ -80,36 +83,42 @@ public configEmailBody1 = {
     private sendingEmail: SendingemailService,
     private formBuilder: FormBuilder,
     private toaster: ToastrService,
+    private snackBar: MatSnackBar
   ){
 this.emailSendForm = new FormGroup('');
 this.emailTemplateForm= new FormGroup('');
+this.smsTemplateForm = new FormGroup('');
   }
   ngOnInit(){
     this.createformgroup();
     this.getEmailTemplate(this.templateId);
     this.getSMSTemplate(this.SMStemplateId);
-
-
   }
   createformgroup(){
     this.emailSendForm = this.formBuilder.group({
       masterEmailTemplateId: [0],
-      visitDate:['',Validators.required],
-      masterSMSTemplateId:[0],
-      recipients:[[]],
-      sms:[true],
-      emailClient:[true],
-      mobileNumber:['']
-
+      visitDate: ['', Validators.required],
+      masterSMSTemplateId: [0],
+      recipients: [[]],
+      sms: [true],
+      emailClient: [true],
+      mobileNumber: ['']
     });
 
+    // Separate form for email template
     this.emailTemplateForm = this.formBuilder.group({
       masterEmailTemplateId: [0],
-      emailTemplateName: [''],
-      emailTemplateSubject:[''],
-      emailTemplateBody:[''],
-      SMSTemplateBody:[''],
-      isActive:[true]
+      emailTemplateName: ['scheduled appointment'],
+      emailTemplateSubject: ['Confirmation de votre rendez-vous / Your appointment confirmation'],
+      emailTemplateBody: [''],
+      isActive: [true]
+    });
+
+    // Create a separate form for SMS template
+    this.smsTemplateForm = this.formBuilder.group({
+      masterSMSTemplateId: [0],
+      smsTemplateBody: [''],
+      isActive: [true]
     });
   }
   resetbutton(){
@@ -129,27 +138,29 @@ this.emailTemplateForm= new FormGroup('');
   }
 }
   getClientEmailSendList(visitDate: any){
-    
       this.isLoading = true;
       this.sendingEmail.getClientEmailSendList(visitDate).subscribe((response:any)=>{
         if(response)
         {
-          this.clientList = response.value;
-          if(this.clientList.length >0)
-          {    
-            this.showTable=true;
-            this.toggleSelectAll({ target: { checked: true } });
-            
+        this.clientList = response.value.map((client: any) => ({
+          ...client,
+          selectrow: true,
+          // Set initial SMS checkbox state based on client preference and phone number availability
+          sMS: client.sMS && client.mobileNumber && client.mobileNumber.trim() !== '',
+          // Set initial email checkbox state based on client preference and email availability
+          emailSend: client.emailClient && client.email && client.email.includes('@')
+        }));
+        
+        if(this.clientList.length > 0)
+        {    
+          this.showTable = true;
           }
           else{
             this.toaster.info("No record found")
           }
           this.isLoading = false;
         }
-        
       })
-    
-    
   }
   getEmailTemplate(id: any){
     this.isLoading = true;
@@ -158,7 +169,10 @@ this.emailTemplateForm= new FormGroup('');
       {
         this.templateDataList = response.value;
         this.dataEmailBody= this.templateDataList[0].emailTemplateBody;
-        this.emailTemplateForm.patchValue({emailTemplateBody: this.templateDataList[0].emailTemplateBody});
+        this.emailTemplateForm.patchValue({
+          emailTemplateBody: this.templateDataList[0].emailTemplateBody,
+          emailTemplateSubject: this.templateDataList[0].emailTemplateSubject
+        });
         if(this.templateDataList[0].emailTemplateBody !== null)
         {
           this.isTemplateUpdate=true;
@@ -167,19 +181,37 @@ this.emailTemplateForm= new FormGroup('');
       }
     });
   }
-  getSMSTemplate(id: any){
-    
+  getSMSTemplate(id: any) {
     this.isLoading = true;
-    this.sendingEmail.GetSMSTemplateByTemplateId(id).subscribe((response:any)=>{
-      if(response)
-      {
+    this.sendingEmail.GetSMSTemplateByTemplateId(id).subscribe({
+      next: (response: any) => {
+        if (response && response.value && response.value.length > 0) {
         this.templateDataList = response.value;
-        this.dataSMSBody= this.templateDataList[0].smsTemplateBody;
-        this.emailTemplateForm.patchValue({SMSTemplateBody: this.templateDataList[0].smsTemplateBody});
-        if(this.templateDataList[0].smsTemplateBody !== null)
-        {
-          this.isTemplateUpdate=true;
+          const template = this.templateDataList[0];
+          
+          // Validate template data
+          if (!template.smsTemplateBody) {
+            this.toaster.warning('SMS template is empty. Please create a template first.');
+            this.dataSMSBody = '';
+          } else {
+            this.dataSMSBody = template.smsTemplateBody;
+          }
+          
+          this.smsTemplateForm.patchValue({
+            smsTemplateBody: this.dataSMSBody
+          });
+          
+          this.isTemplateUpdate = true;
+        } else {
+          this.toaster.warning('No SMS template found. Please create a new template.');
+          this.dataSMSBody = '';
+          this.isTemplateUpdate = false;
         }
+        this.isLoading = false;
+      },
+      error: (error: any) => {
+        console.error('Error fetching SMS template:', error);
+        this.toaster.error('Failed to load SMS template. Please try again.');
         this.isLoading = false;
       }
     });
@@ -220,119 +252,330 @@ checkRowSelection(): void {
     }
 }
 
-onTemplateSubmit(): void{
-  this.isLoading = true;
-  const abkk =this.emailTemplateForm.get('emailTemplateBody')?.value;
-if(this.isTemplateUpdate === true)
-{
-  this.emailTemplateForm.patchValue({masterEmailTemplateId: this.templateDataList[0].masterEmailTemplateId});
-}
-
-  const requestModel: any = this.emailTemplateForm.value; 
-  this.sendingEmail.AddUpdateEmailTemplate(requestModel).subscribe((Response: any ) =>{
-    if(Response.value.isSuccess == true){
-      if(this.isTemplateUpdate === false)
-      {
-        this.toaster.success('Email template created successfully.');
-      }
-      else{
-        this.toaster.success('Email template updated successfully.');
-      }
-      const btnSamElement = document.getElementById('EmailVisitsModalclose');
-      if (btnSamElement) {
-        btnSamElement.click();
-      }
-      this.isLoading = false;
-    }
-    else{
-      this.toaster.error(Response.value.error.message);
-      this.isLoading = false;
-    }
-  });
-
-}
-onSMSTemplateSubmit(): void{
-  
+onTemplateSubmit(): void {
   this.isLoading = true;
   
-
-  const requestModel : any = {
-    masterSMSTemplateId : this.templateDataList[0].masterSMSTemplateId,
-    smsTemplateBody : this.emailTemplateForm.get('SMSTemplateBody')?.value
+  // Construct the proper email template request model
+  const requestModel: any = {
+    masterEmailTemplateId: this.isTemplateUpdate ? this.templateDataList[0].masterEmailTemplateId : 0,
+    emailTemplateName: 'scheduled appointment',
+    emailTemplateSubject: this.emailTemplateForm.get('emailTemplateSubject')?.value,
+    emailTemplateBody: this.emailTemplateForm.get('emailTemplateBody')?.value,
+    isActive: true
   };
-  this.sendingEmail.AddUpdateSMSTemplate(requestModel).subscribe((Response: any ) =>{
-    if(Response.value.isSuccess == true){
-      if(this.isTemplateUpdate === false)
-      {
-        this.toaster.success('SMS template created successfully.');
-      }
-      else{
-        this.toaster.success('SMS template updated successfully.');
-      }
-      const btnSamElement = document.getElementById('SMSVisitsModalclose');
-      if (btnSamElement) {
-        btnSamElement.click();
+
+  this.sendingEmail.AddUpdateEmailTemplate(requestModel).subscribe({
+    next: (Response: any) => {
+      if (Response.value.isSuccess === true) {
+        if (this.isTemplateUpdate === false) {
+          this.toaster.success('Email template created successfully.');
+        } else {
+          this.toaster.success('Email template updated successfully.');
+        }
+        const btnSamElement = document.getElementById('EmailVisitsModalclose');
+        if (btnSamElement) {
+          btnSamElement.click();
+        }
+      } else {
+        this.toaster.error(Response.value.error.message);
       }
       this.isLoading = false;
-    }
-    else{
-      this.toaster.error(Response.value.error.message);
+    },
+    error: (error: any) => {
+      console.error('Error saving email template:', error);
+      this.toaster.error('Failed to save email template. Please try again.');
       this.isLoading = false;
     }
   });
-
 }
+
+onSMSTemplateSubmit(): void {
+  const templateBody = this.smsTemplateForm.get('smsTemplateBody')?.value;
+  if (!templateBody || templateBody.trim() === '') {
+    this.toaster.error('SMS template body cannot be empty');
+    return;
+  }
+
+  // Validate template length
+  if (templateBody.length > 160) {
+    this.toaster.warning('Template exceeds 160 characters and may be split into multiple SMS');
+  }
+  
+  this.isLoading = true;
+  
+  // Ensure we have a valid template ID
+  const templateId = this.isTemplateUpdate && this.templateDataList[0]?.masterSMSTemplateId 
+    ? this.templateDataList[0].masterSMSTemplateId 
+    : this.SMStemplateId;
+
+  const requestModel = {
+    masterSMSTemplateId: templateId,
+    smsTemplateBody: templateBody.trim()
+  };
+
+  console.log('Saving SMS template:', requestModel);
+
+  this.sendingEmail.AddUpdateSMSTemplate(requestModel).subscribe({
+    next: (response: any) => {
+      if (response.value.isSuccess) {
+        this.toaster.success(
+          this.isTemplateUpdate ? 
+          'SMS template updated successfully' : 
+          'SMS template created successfully'
+        );
+        
+        // Refresh the template data
+        this.getSMSTemplate(templateId);
+        
+        // Close modal if it exists
+        const modalElement = document.getElementById('SMSVisitsModalclose');
+        if (modalElement) {
+          modalElement.click();
+        }
+      } else {
+        console.error('Failed to save template:', response.value.error);
+        this.toaster.error(response.value.error?.message || 'Failed to save SMS template');
+      }
+      this.isLoading = false;
+    },
+    error: (error: any) => {
+      console.error('Error saving SMS template:', error);
+      this.toaster.error('Failed to save SMS template. Please try again.');
+      this.isLoading = false;
+    }
+  });
+}
+
 getSelectedEmails(): string[] {
- 
-  return this.clientList.filter(client => client.selectrow)
+  return this.clientList
+    .filter(client => client.selectrow && client.emailSend && client.email && client.email.includes('@'))
                         .map(client => client.email);
 }
-getSelectedSMS(): string[] {
- 
-  return this.clientList.filter(client => client.selectrow)
-                        .map(client => client.sms);
-}
-getSelectedEmailsClient(): string[] {
- 
-  return this.clientList.filter(client => client.selectrow)
-                        .map(client => client.emailClient);
-}
-getSelectedMobileNumber(): string[] {
- 
-  return this.clientList.filter(client => client.selectrow)
-                        .map(client => client.mobileNumber);
+
+getSelectedSMS(): boolean[] {
+  return this.clientList
+    .filter(client => client.selectrow)
+    .map(client => client.sMS);
 }
 
-onSendConfirmationEmail(): void{
-  this.isLoading= true;
+getSelectedEmailsClient(): boolean[] {
+  return this.clientList
+    .filter(client => client.selectrow)
+    .map(client => client.emailSend);
+}
 
+private validateMobileNumber(number: string): { isValid: boolean; formattedNumber: string | null } {
+  // Remove all non-digit characters
+  const cleaned = number.replace(/\D/g, '');
+  
+  // Check if the number has a valid length (10-15 digits)
+  if (cleaned.length < 10 || cleaned.length > 15) {
+    return { isValid: false, formattedNumber: null };
+  }
 
-const selectedEmails = this.getSelectedEmails();
-const selectedsms = this.getSelectedSMS();
-const selectedemailClient = this.getSelectedEmailsClient();
-const selectedmobileNumber =  this.getSelectedMobileNumber();
-this.emailSendForm.patchValue({recipients: selectedEmails});
-this.emailSendForm.patchValue({sms: selectedsms});
-this.emailSendForm.patchValue({emailClient: selectedemailClient});
-this.emailSendForm.patchValue({mobileNumber: selectedmobileNumber});
- 
-  if(this.isTemplateUpdate === true)
-    {
-      this.emailSendForm.patchValue({masterEmailTemplateId: this.templateDataList[0].masterEmailTemplateId});
-      this.emailSendForm.patchValue({masterSMSTemplateId: this.SMStemplateId});
-    }
-    const requestModel: any = this.emailSendForm.value;
+  // Ensure number starts with country code
+  const formattedNumber = cleaned.startsWith('1') ? cleaned : `1${cleaned}`;
+  
+  return { isValid: true, formattedNumber };
+}
 
-    this.sendingEmail.SendEmailConfirmation(requestModel).subscribe((Response: any ) =>{
-      if(Response.value == "EMail sent successfully"){
-          this.toaster.success('Email sent successfully.');
-          this.isLoading= false;
+private getSelectedMobileNumber(): (string | null)[] {
+  const selectedNumbers = this.clientList
+    .filter(client => client && client.selectrow)
+    .map(client => {
+      if (client.sMS && client.mobileNumber) {
+        const { isValid, formattedNumber } = this.validateMobileNumber(client.mobileNumber);
+        
+        if (!isValid) {
+          console.warn(`Invalid mobile number for client ${client.firstName} ${client.lastName}: ${client.mobileNumber}`);
+          this.toaster.warning(`Invalid phone number format for ${client.firstName} ${client.lastName}`);
+          return null;
+        }
+        
+        return formattedNumber;
       }
-      else{
-        this.toaster.error(Response.value.error.message);   
-        this.isLoading= false; 
+      return null;
+    })
+    .filter(number => number !== null);
+
+  return selectedNumbers;
+}
+
+onSendConfirmationEmail(): void {
+  this.isLoading = true;
+
+  try {
+    const selectedMobileNumbers = this.getSelectedMobileNumber();
+const selectedEmails = this.getSelectedEmails();
+    const smsStatus = this.getSelectedSMS();
+    const emailStatus = this.getSelectedEmailsClient();
+    
+    // Check if we have any valid recipients
+    if (selectedMobileNumbers.length === 0 && selectedEmails.length === 0) {
+      this.toaster.error('No valid recipients selected. Please select at least one recipient with a valid phone number or email address.');
+      this.isLoading = false;
+      return;
+    }
+    
+    const visitDate = this.emailSendForm.get('visitDate')?.value;
+    if (!visitDate) {
+      this.toaster.error('Please select a visit date');
+      this.isLoading = false;
+      return;
+    }
+
+    const formattedDate = visitDate instanceof Date ? 
+      visitDate.toISOString().split('T')[0] : 
+      visitDate;
+    
+    const requestModel = {
+      masterEmailTemplateId: this.templateId,
+      masterSMSTemplateId: this.SMStemplateId,
+      recipients: selectedEmails,
+      visitDate: formattedDate,
+      sms: smsStatus,
+      emailClient: emailStatus,
+      mobileNumber: selectedMobileNumbers
+    };
+    
+    console.log('Sending email request:', requestModel);
+    
+    this.sendingEmail.SendEmailConfirmation(requestModel).subscribe(
+      (response: any) => {
+        if (response && (response.statusCode === 200 || response.isSuccess === true)) {
+          this.toaster.success(response.message || 'Messages sent successfully.');
+        } else {
+          this.toaster.error(
+            response.message || 
+            'Failed to send emails/SMS. Please try again.'
+          );
+        }
+        this.isLoading = false;
+      },
+      (error) => {
+        console.error('Email send error:', error);
+        this.toaster.error(
+          error.error?.message || 
+          'Server error occurred when sending emails. Please try again.'
+        );
+        this.isLoading = false;
+      }
+    );
+  } catch (error) {
+    console.error('Error in onSendConfirmationEmail:', error);
+    this.toaster.error('An unexpected error occurred. Please try again.');
+    this.isLoading = false;
+  }
+}
+
+// Method to handle row selection
+onRowSelectionChange(client: any, event: any): void {
+  client.selectrow = event.target.checked;
+  
+  if (event.target.checked) {
+    // When checking a row, set default values based on availability
+    client.sMS = client.mobileNumber && client.mobileNumber.trim() !== '';
+    client.emailSend = client.email && client.email.includes('@');
+  } else {
+    // When unchecking a row, uncheck both SMS and email
+    client.sMS = false;
+    client.emailSend = false;
+  }
+}
+
+// Method to handle SMS checkbox changes
+onSMSChange(client: any, event: any): void {
+  if (!client) {
+    return;
+  }
+
+  if (!client.mobileNumber || client.mobileNumber.trim() === '') {
+    if (event && event.target) {
+      event.target.checked = false;
+    }
+    this.toaster.warning('No valid phone number available for SMS');
+    return;
+  }
+
+  // Validate mobile number format before allowing SMS selection
+  const cleanedNumber = client.mobileNumber.replace(/\D/g, '');
+  if (cleanedNumber.length < 10 || cleanedNumber.length > 15) {
+    if (event && event.target) {
+      event.target.checked = false;
+    }
+    this.toaster.warning(`Invalid phone number format for ${client.firstName} ${client.lastName}`);
+    return;
+  }
+
+  client.sMS = event && event.target ? event.target.checked : false;
+  
+  // If both SMS and email are unchecked, uncheck the row
+  if (!client.sMS && !client.emailSend) {
+    client.selectrow = false;
+  }
+}
+
+// Method to handle email checkbox changes
+onEmailChange(client: any, event: any): void {
+  if (!client) {
+    return;
+  }
+
+  if (!client.email || !client.email.includes('@')) {
+    if (event && event.target) {
+      event.target.checked = false;
+    }
+    this.toaster.warning('No valid email address available');
+    return;
+  }
+
+  client.emailSend = event && event.target ? event.target.checked : false;
+  
+  // If both SMS and email are unchecked, uncheck the row
+  if (!client.sMS && !client.emailSend) {
+    client.selectrow = false;
+  }
+}
+
+sendSMS() {
+  const mobileNumbers = this.getSelectedMobileNumber();
+  
+  if (!mobileNumbers.length) {
+    this.toaster.error('No valid mobile numbers selected for SMS');
+    return;
+  }
+
+  const message = this.emailSendForm.get('message')?.value;
+  if (!message || message.trim() === '') {
+    this.toaster.error('Please enter a message to send');
+    return;
+  }
+
+  // Validate message length (SMS typically has a 160 character limit)
+  if (message.length > 160) {
+    this.toaster.warning('Message exceeds 160 characters and may be split into multiple SMS');
+  }
+
+  const smsRequest = {
+    to: mobileNumbers,
+    message: message.trim()
+  };
+
+  this.isLoading = true;
+  this.sendingEmail.sendSMS(smsRequest).subscribe({
+    next: (response: any) => {
+      console.log('SMS sent successfully:', response);
+      this.toaster.success('SMS sent successfully');
+      this.isLoading = false;
+    },
+    error: (error: any) => {
+      console.error('Error sending SMS:', error);
+      this.toaster.error(
+        error.error?.message || 
+        'Failed to send SMS. Please check the phone numbers and try again.'
+      );
+      this.isLoading = false;
       }
     });
 }
-  
 }

@@ -1,6 +1,6 @@
 export const environment = {
     production: false,
-  apiUrl: 'https://jacuzzimanagement.rhologix.com/Backend',
+    apiUrl: 'http://localhost:3000',
     //apiUrl:'https://ms.stagingsdei.com:4101',       
     pageSizeList: [5, 10, 25, 50],
     defaultPageSize: 50

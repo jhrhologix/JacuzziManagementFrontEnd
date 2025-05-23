@@ -1,0 +1,16 @@
+<div class="container">
+  <h2>Send Messages</h2>
+  
+  <div class="message-form">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Message</mat-label>
+      <textarea matInput rows="4" placeholder="Enter your message here..."></textarea>
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="sendSMS(getSelectedMobileNumbers(), message)">
+        Send SMS
+      </button>
+    </div>
+  </div>
+</div> 
