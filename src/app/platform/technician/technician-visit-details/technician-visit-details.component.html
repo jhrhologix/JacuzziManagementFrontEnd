@@ -12,11 +12,11 @@
                         <div class="col-md-3">
                             <label for="searchDate" class="form-label"> {{ 'CALENDAR.Date' | translate }} </label>
                            
-                            <input type="date" formControlName="searchDate" [value]="currentDate" 
+                            <input type="date" formControlName="searchDate" 
                                class="form-control" id="searchDate">
                                 <div *ngIf="techServiceJobsForm.get('searchDate')?.invalid && (techServiceJobsForm.get('searchDate')?.touched || techServiceJobsForm.get('searchDate')?.dirty)"
                                 class="text-danger">
-                                <span *ngIf="techServiceJobsForm.get('searchDate')?.hasError('required')">Select  Date</span>                      
+                                <span *ngIf="techServiceJobsForm.get('searchDate')?.hasError('required')">Select Date</span>                      
                                 </div>
                         </div>
                         <div class="col-md-3 text-end">
@@ -29,22 +29,32 @@
                     <div class="row mt-3">
                         <div class="listofappointments" >
 
-                            <div *ngFor="let item of seriveJobsList" class="listapp" [ngClass]="item.cssClass"  (click)="jobServiceDetails(item.idVisit,item.idClient,item.idSpa,item.technician_id,item.idServiceCall )">
-                                <button (click)="showRoute(item.idClient); $event.stopPropagation()" type="submit" class="btn btn-outline-primary"> {{ 'HEADER.Show_Route' | translate }} </button>
-
-                                <p>{{item.visitDuration}}</p>
-                                <div class="name">
-                                   {{item.clientFullName}}
+                            <div class="service-job-item" *ngFor="let item of seriveJobsList" (click)="navigateToServiceCall(item)" style="cursor: pointer;">
+                                <div class="service-job-content">
+                                    <div class="service-job-header">
+                                        <button class="route-button" (click)="showRoute(item); $event.stopPropagation()">
+                                            <i class="fas fa-route"></i>
+                                        </button>
+                                        <div class="visit-status-tag" *ngIf="item.completed === null || item.completed === 1" [ngClass]="getVisitStatusClass(item.completed)">
+                                            {{ item.completed === 1 ? ('Visit.Completed' | translate) : ('Visit.InProgress' | translate) }}
+                                        </div>
+                                    </div>
+                                    <div class="service-job-details">
+                                        <div class="visit-duration">{{ item.visitDuration }} min</div>
+                                        <div class="client-info">
+                                            <div class="client-name">{{ item.clientFullName }}</div>
+                                            <div class="client-city">{{ item.city }}</div>
+                                        </div>
+                                        <div class="issue-info">
+                                            <div class="issue-class">{{ item.issueClassLabel }}</div>
+                                            <div class="pool-specialist">{{ item.poolSpecialistAbbreviation }}</div>
+                                        </div>
+                                        <button *ngIf="!item.completed" class="notification-button" (click)="handleNotificationClick($event, item)">
+                                            <i class="fas fa-bell"></i>
+                                            {{ 'Visit.SendArrivalNotification' | translate }}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="name">
-                                    {{item.city}}
-                                 </div>
-                                 <div class="name">
-                                    {{item.issueClass_labelEn}}
-                                 </div>
-                                 <div class="name">
-                                    {{item.poolSpecialist_abbreviation}}
-                                 </div>
                             </div>
                             <div id="loader" class="loader" *ngIf="isLoading">
                                 <div class="load">

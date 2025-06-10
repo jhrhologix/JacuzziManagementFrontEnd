@@ -24,10 +24,6 @@
     "IdentityConfirmation": "Identity Confirmation",
     "AnswerQuestion": "Answer the following question",
     "Ques": "Question"
-   
-    
-    
-    
   },
   "HEADER": {
     "SEARCH": "Search Clients",
@@ -151,16 +147,13 @@
    "Waitinglistfilter":"Waiting List Filter",
    "year":"Select Year",
    "month":"Select Month"
-
   },
   "SPA_MODEL": {
     "Spa_Brands" : "Spa Brands",
     "Spa_Models": "Spa Models",
     "Pool_Specialist_list": "Purchase Location list"
- 
-   },
-
-   "ACCOUNTS": {
+  },
+  "ACCOUNTS": {
     "NEW_USER" : "New User",
     "Transfer_Visit": "Transfer Visit",
     "ROLE": "Role",
@@ -176,9 +169,8 @@
     "Unlock": "Unlock",
     "EDIT_VISIT_EMAIL" : "Visit Notification Template",
     "EDIT_IsClose_EMAIL":"Close ServiceCall Template"
-   },
-
-   "SEND_EMAIL": {
+  },
+  "SEND_EMAIL": {
     "Confirmation_Email": "Send Confirmation",
     "DATE_OF_VISIT": "Select Visit Date",
     "EDIT_EMAIL_TEMPLATE": "Email Template",
@@ -190,11 +182,8 @@
     "EDIT_SMS": "Edit SMS Template",
     "Confirmation": "Send Confirmation",
     "EmailBody": "Email Body"
-    
-
-   },
-
-   "SPA_REPORT": {
+  },
+  "SPA_REPORT": {
     "Report_Visit": "Report of Visits",
     "Visit_Date": "Date of Visit",
     "Select_VisitDate": "Select Visit Date",
@@ -202,10 +191,8 @@
     "Excel": "Export to Excel",
     "Order_Parts": "Parts of Order Report",
     "Schedule": "Schedule Report"
-
-   },
-
-   "SERVICE_CALL": {
+  },
+  "SERVICE_CALL": {
     "Client_Info": "Client Info",
     "ClientName": "Client Name",
     "AddVisit": "Add Visit",
@@ -237,12 +224,12 @@
     "ImageService":"ServiceCall Images",
     "ChangeStatus": "Change status",
     "closedservice": "IsClosed",
-    "UploadImages":"Upload Images"
-
-    
-   },
-   
-   "Technician": {
+    "UploadImages":"Upload Images",
+    "ClientNumber": "Client Number",
+    "PoolSpecialist": "Pool Specialist",
+    "PlacementDate": "Placement Date"
+  },
+  "Technician": {
     "TSchedules": "Schedules of the day",
     "ShowSchedule": "Show Schedules",
     "ServiceRequester": "Service requester",
@@ -257,11 +244,8 @@
     "ChangePassword": "Change Password",
     "NewPass": "New Password",
     "DiffPassValidation": "Passwords do not match. Please ensure both fields are identical."
-   
-   },
-
-   "MODAL": {
-
+  },
+  "MODAL": {
     "ConfirmDelete": "Confirm Delete",
     "ConfirmTransfer": "Confirm Technician Visit Transfer",
     "DeleteBrand": "Are you sure you want to delete this Brand ?",
@@ -278,11 +262,8 @@
     "Confirm": "Confirm",
     "AttnClient": "Unable to delete client. This client has one or more associated services and cannot be removed.",
     "Ok": "Ok"
-
-
-   },
-
-   "PLACEHOLDER": {
+  },
+  "PLACEHOLDER": {
     "SearchClient" : "Search Client",
     "ClientId": "Client Id",
     "EnterDays": "Enter Days",
@@ -299,15 +280,21 @@
     "SearchPoolSpec": "SEARCH PURCHASE LOCATION",
     "EnterAssignDays": "Enter Assign Days",
     "SelectPoolSpc": "Please choose a purchase location!"
-
-   },
-
-   "REQUIRED": {
+  },
+  "REQUIRED": {
     "Required": "ef"
-
-
-   }
-
-
-
+  },
+  "Visit": {
+    "InProgress": "In Progress",
+    "Completed": "Completed",
+    "SendArrivalNotification": "Send Arrival Notification"
+  },
+  "Common": {
+    "Cancel": "Cancel",
+    "Confirm": "Confirm"
+  },
+  "CLIENT": {
+    "ExternalBreaker": "External Breaker",
+    "SpaLifted": "Spa Lifted"
+  }
 }

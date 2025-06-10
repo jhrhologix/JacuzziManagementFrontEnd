@@ -238,7 +238,10 @@
      "ImageService":"Images d'appel de service",
      "ChangeStatus": "Changer le statut",
      "closedservice": "EstFermé",
-    "UploadImages":"Télécharger des images"
+    "UploadImages":"Télécharger des images",
+    "ClientNumber": "Numéro Client",
+    "PoolSpecialist": "Spécialiste Piscine",
+    "PlacementDate": "Date de Placement"
 
    },
    
@@ -306,9 +309,21 @@
     "EnterAssignDays": "Entrez les jours attribués",
     "SelectPoolSpc": "Choisissez un lieu d'achat !"
 
-   }
+   },
 
-
+   "Visit": {
+    "InProgress": "En cours",
+    "Completed": "Terminé",
+    "SendArrivalNotification": "Envoyer la notification d'arrivée"
+  },
+  "Common": {
+    "Cancel": "Annuler",
+    "Confirm": "Confirmer"
+  },
+  "CLIENT": {
+    "ExternalBreaker": "Disjoncteur Externe",
+    "SpaLifted": "Spa Soulevé"
+  }
 }
   
   

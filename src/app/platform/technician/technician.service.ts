@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,7 @@ export class TechnicianService {
   saveSpaDetailsUrl = 'api/clients/saveSpaDetails';
   getAllTechnicianDetailTechnicianPageByIDUrl = 'api/Technician/GetAllTechnicianDetailTechnicianPageByID?visitId='
   getSpaDetailByVisitIdURL ='api/M_Technician/GetSpaDetailByVisitId?visitId=';
-  getClientDetailForTechincianURL ='api/M_Technician/GetClientDetailForTechincian?visitId=';
+  getClientDetailForTechnicianURL ='api/M_Technician/GetClientDetailForTechnician?visitId=';
   updateSpaDetailByTechincianURL ='api/M_Technician/UpdateSpaDetailByTechincian';
   updateClientDetailByTechincianURL ='api/M_Technician/UpdateClientDetailByTechincian';
   getServiceCallDetailsForTechnicianURL = 'api/Technician/GetServiceCallDetailsForTechnician?serviceCallId='
@@ -26,6 +27,7 @@ export class TechnicianService {
   emailURL="api/Technician/SendMail"
   getClientAddressURL='api/Technician/address?clientId='
   getImageURL='api/ServiceCall'
+  getAllProvincesURL = 'api/Clients/GetProvinces'
 
   constructor(private httprequest : HttpClient) { }
 
@@ -51,8 +53,8 @@ export class TechnicianService {
   getSpaDetailByVisitId(visitId:number){
     return this.httprequest.get(`${environment.apiUrl}/${this.getSpaDetailByVisitIdURL}${visitId}`);
   }
-  getClientDetailForTechincian(visitId:number){
-    return this.httprequest.get(`${environment.apiUrl}/${this.getClientDetailForTechincianURL}${visitId}`);
+  getClientDetailForTechnician(clientId:number){
+    return this.httprequest.post(`${environment.apiUrl}/api/clients/getclientbyid?clientId=${clientId}`, null);
   }
   updateSpaDetailByTechincian(model:any)
   {
@@ -92,5 +94,20 @@ export class TechnicianService {
   getImageById(id: number): Observable<{ fileData: string; contentType: string }[]> {
     return this.httprequest.get<{ fileData: string; contentType: string }[]>(`${environment.apiUrl}/${this.getImageURL}/${id}`
     );
+  }
+
+  getVisitStatus() {
+    console.log('Making API call to get visit status...');
+    const url = `${environment.apiUrl}/${this.getParticularServiceCallStatusUrl}`;
+    console.log('API URL:', url);
+    return this.httprequest.get<any>(url).pipe(
+      tap(response => {
+        console.log('Visit status API response:', response);
+      })
+    );
+  }
+
+  getAllProvinces() {
+    return this.httprequest.get(`${environment.apiUrl}/${this.getAllProvincesURL}`);
   }
 }

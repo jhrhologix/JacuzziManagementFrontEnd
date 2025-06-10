@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastrModule, ToastrService } from 'ngx-toastr';
@@ -7,26 +7,31 @@ import { Router } from '@angular/router';
 import { CommonService } from '../../../core/services/common.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { GooglemapComponent } from '../googlemap/googlemap.component';
+import { VisitService } from './visit.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+
 @Component({
   selector: 'app-technician-visit-details',
   standalone: true,
   providers: [DatePipe],
   imports: [
     CommonModule,
-     FormsModule, 
-     ReactiveFormsModule,
-      ToastrModule,
-      TranslateModule,
-      GooglemapComponent
+    FormsModule, 
+    ReactiveFormsModule,
+    ToastrModule,
+    TranslateModule,
+    GooglemapComponent,
+    MatDialogModule
   ],
   templateUrl: './technician-visit-details.component.html',
   styleUrl: './technician-visit-details.component.scss'
 })
-export class TechnicianVisitDetailsComponent {
+export class TechnicianVisitDetailsComponent implements OnInit {
   date: any;
   isLoading = false;
   showGoogleMaps: boolean = false;
-  techServiceJobsForm: FormGroup;
+  techServiceJobsForm!: FormGroup;
   technicianId: any;
   technicianName: string='';
   searchDate: any;
@@ -36,9 +41,10 @@ export class TechnicianVisitDetailsComponent {
   inputDays: number = 0;
   clientId: number = 0;
   spaId: number = 0;
-  userId :any;
+  userId: any;
   days: any;
   sendData: any[] = [];
+  hasInProgressVisit = false;
 
   constructor(
     private router: Router,
@@ -46,141 +52,252 @@ export class TechnicianVisitDetailsComponent {
     private technicianVisitService: TechnicianVisitServiceService,
     private formBuilder: FormBuilder,
     private toaster: ToastrService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private visitService: VisitService,
+    private dialog: MatDialog
   ) {
-    this.techServiceJobsForm = new FormGroup('');
+    this.currentDate = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
   }
-  
-  ngOnInit() {
-    this.currentDate = new Date();
-    this.currentDate = this.datePipe.transform(this.currentDate, 'yyyy-MM-dd')
+
+  ngOnInit(): void {
     this.techServiceJobsForm = this.formBuilder.group({
-      technicianId: [0],
+      technicianId: ['', Validators.required],
       searchDate: [this.currentDate, Validators.required]
-
     });
+
+    // Subscribe to date changes
+    this.techServiceJobsForm.get('searchDate')?.valueChanges.subscribe(() => {
+      this.onSearchServiceJobsByDate();
+    });
+
+    const userId = localStorage.getItem('userId');
+    console.log('Retrieved userId from localStorage:', userId);
+
+    if (userId) {
+      this.isLoading = true;
+      const numericUserId = parseInt(userId, 10);
+      if (isNaN(numericUserId)) {
+        console.error('Invalid userId format in localStorage');
+        this.toaster.error('Invalid user ID format. Please log in again.');
+        this.router.navigate(['/auth/login']);
+        return;
+      }
       
-    this.GetTechnicianIdByUserLogin();
-    
-  }
-
-  GetTechnicianIdByUserLogin(): void {
- 
-    
-    this.userId = localStorage.getItem('userId');
-    this.days = localStorage.getItem('assignTechnicianDays');
-    
-  }
- 
-
-  onSearchServiceJobsByDate(): void {
-    
-    this.searchDate = this.techServiceJobsForm.get('searchDate')?.value;
-    const selectedDate = new Date(this.searchDate);
-
-  // Calculate the difference in days
-  const currentDate = new Date();
-  const differenceInTime = selectedDate.getTime() - currentDate.getTime();
-  const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
-  if (differenceInDays <= 0) {
-    if (this.userId > 0 && this.searchDate !== null) {
-      this.technicianVisitService.GetServiceJobsForTechnician(this.userId, this.searchDate).subscribe((response: any) => {
-
-        if (response !== null) {
-          
-          //this.seriveJobsList = response.value;
-          const jobList = response.value;
-          this.seriveJobsList = jobList
-                                .sort((a: any, b: any) => a.priority - b.priority)
-                                .map((job: any, index: number) => ({
-                                  ...job,
-                                  displayIndex: index + 1, // Add 1-based index for display
-                                  cssClass: job.serviceCallStatus_labelEn === 'COMPLETED' ? 'red-row' : ''
-                                }));
-
+      this.technicianVisitService.GetTechnicianIdByUserId(numericUserId).subscribe({
+        next: (response: any) => {
+          console.log('Technician ID response:', response);
+          if (response && response.value && response.value.length > 0) {
+            const technicianData = response.value[0];
+            console.log('Raw technician data from response:', technicianData);
+            
+            // Extract the technicianId from the response object
+            const technicianId = technicianData.technicianId;
+            
+            if (!technicianId || isNaN(technicianId)) {
+              console.error('Invalid technician ID format:', technicianData);
+              this.toaster.error('Invalid technician ID format. Please contact your administrator.');
+              return;
+            }
+            
+            console.log('Setting technician ID:', technicianId);
+            this.techServiceJobsForm.patchValue({
+              technicianId: technicianId
+            });
+            // Automatically search for today's visits
+            this.onSearchServiceJobsByDate();
+          } else {
+            console.error('No technician ID found in response');
+            this.toaster.error('You are not associated with any technician. Please contact your administrator.');
+            this.router.navigate(['/web/technician/technician-visit']);
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error getting technician ID:', error);
+          this.toaster.error('Failed to get technician information. Please try again later.');
           this.isLoading = false;
         }
-          if (this.seriveJobsList.length > 0) {
-     
-          }
-          else {
-            this.toaster.info("No record found");
-          }
-
-      })
-      
-
-    }
-    
-  }
-  if(differenceInDays <= this.days){
-    if (this.userId > 0 && this.searchDate !== null) {
-      this.technicianVisitService.GetServiceJobsForTechnician(this.userId, this.searchDate).subscribe((response: any) => {
-        if (response !== null) {
-          //this.seriveJobsList = response.value;
-          
-          const jobList = response.value;
-          this.seriveJobsList = jobList
-                                .sort((a: any, b: any) => a.priority - b.priority)
-                                .map((job: any, index: number) => ({
-                                  ...job,
-                                  displayIndex: index + 1, // Add 1-based index for display
-                                  cssClass: job.serviceCallStatus_labelEn === 'COMPLETED' ? 'red-row' : ''
-                                }));
-          if (this.seriveJobsList.length > 0) {
-     
-          }
-          else {
-            this.toaster.info("No record found");
-          }
-
-        }
       });
-
+    } else {
+      console.error('No userId found in localStorage');
+      this.toaster.error('User ID not found. Please log in again.');
+      this.router.navigate(['/auth/login']);
     }
   }
-   else{
-    this.toaster.warning(`You cannot view data beyond ${this.days} days from today. Please select a valid date.`,
-      "Invalid Date");
+
+  onSearchServiceJobsByDate(): void {
+    if (!this.techServiceJobsForm.valid) {
+      const searchDate = this.techServiceJobsForm.get('searchDate');
+      if (searchDate?.invalid) {
+        this.toaster.error('Please select a valid date');
+      }
       return;
-   }   
-  }
-  // , idClient : number, idSpa: number, technician_id: number
-  jobServiceDetails(idVisit: number, idClient: number, idSpa: number,technician_id: number,idServiceCall: number ): void {
-    
-    const queryParams = {
-      visitId: idVisit
+    }
 
-    };
-    sessionStorage.setItem('clientId', idClient.toString());
-    sessionStorage.setItem('spaId', idSpa.toString());
-    sessionStorage.setItem('technicianId', technician_id.toString());
-    sessionStorage.setItem('serviceCallId', idServiceCall.toString());
-    const encryptedParams = this.commonservice.encrypt(JSON.stringify(queryParams)
-    );
-    // this.router.navigate(['/web/technician/manage-technician'], {
-    //   queryParams: { id: encryptedParams },
-    // });
-    const baseUrl = `${window.location.origin}/#/` // Get the base URL of your app
-    const newUrl = this.router.serializeUrl(
-      this.router.createUrlTree(['/web/technician/manage-technician'], {
-        queryParams: { id: encryptedParams },
-      })
-    );
-  
-    // Open the full URL in a new tab
-    window.open(`${baseUrl}${newUrl}`, '_blank');
-    
+    const searchDate = this.techServiceJobsForm.get('searchDate')?.value;
+    const technicianId = Number(this.techServiceJobsForm.get('technicianId')?.value);
 
-  }
+    console.log('Searching with:', { technicianId, searchDate });
 
-  showRoute(id:number){
-    this.sendData.push({
-      clientId: id    
+    if (!technicianId || isNaN(technicianId)) {
+      this.toaster.error('Invalid technician ID. Please try again.');
+      return;
+    }
+
+    this.isLoading = true;
+    this.technicianVisitService.GetServiceJobsForTechnician(technicianId, searchDate).subscribe({
+      next: (response: any) => {
+        console.log('API Response:', response);
+        if (response && response.value) {
+          this.seriveJobsList = response.value
+            .sort((a: any, b: any) => a.priority - b.priority)
+            .map((job: any, index: number) => ({
+              ...job,
+              displayIndex: index + 1,
+              completed: job.completed === undefined ? null : job.completed,
+              cssClass: this.getVisitStatusClass(job.completed === undefined ? null : job.completed)
+            }));
+          this.hasInProgressVisit = this.seriveJobsList.some(v => v.completed === null);
+        } else {
+          this.seriveJobsList = [];
+          this.toaster.info('No visits found for the selected date');
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error fetching service jobs:', error);
+        this.toaster.error('Failed to fetch service jobs. Please try again later.');
+        this.isLoading = false;
+      }
     });
+  }
+
+  getVisitStatusClass(completed: boolean | null): string {
+    if (completed === null) return 'in-progress';
+    if (completed === false) return '';
+    if (completed === true) return 'completed';
+    return '';
+  }
+
+  private showConfirmation(title: string, message: string): Promise<boolean> {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: { title, message }
+    });
+
+    return dialogRef.afterClosed().toPromise();
+  }
+
+  async handleNotificationClick(event: Event, item: any): Promise<void> {
+    event.stopPropagation();
+
+    // Check for uncompleted visits before this one
+    const hasUncompletedBefore = this.seriveJobsList.some(v => 
+      v.completed === false && 
+      this.seriveJobsList.indexOf(v) < this.seriveJobsList.indexOf(item)
+    );
+
+    if (hasUncompletedBefore) {
+      const proceed = await this.showConfirmation(
+        'Warning',
+        'There are uncompleted visits before this one. Proceed anyways?'
+      );
+      if (!proceed) return;
+    }
+
+    // Check for in-progress visit
+    if (this.hasInProgressVisit && item.completed !== null) {
+      const proceed = await this.showConfirmation(
+        'Warning',
+        'There is another visit in progress. Proceed anyways?'
+      );
+      if (!proceed) return;
+    }
+
+    // Show confirmation dialog
+    const message = item.completed === null
+      ? 'You have already advised the client. Proceed anyways?'
+      : 'Do you want to send your arrival notification to the client?';
+
+    const proceed = await this.showConfirmation('Confirm', message);
+    if (!proceed) return;
+
+    try {
+      // First update the visit status to in-progress (null)
+      await this.visitService.updateVisitStatus(item.idVisit, null).toPromise();
+      item.completed = null;
+      this.hasInProgressVisit = true;
+
+      // Then send the notification
+      await this.visitService.sendNotification(item.idVisit).toPromise();
+
+      this.toaster.success('Notification sent successfully');
+      
+      // Refresh the visits list after successful notification
+      if (this.techServiceJobsForm.valid) {
+        this.onSearchServiceJobsByDate();
+      }
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+      this.toaster.error('Failed to send notification');
+    }
+  }
+
+  showRoute(id: number): void {
+    this.sendData = [{
+      clientId: id    
+    }];
     this.showGoogleMaps = false;
     setTimeout(() => {
-        this.showGoogleMaps = true;
+      this.showGoogleMaps = true;
     }, 0);
+  }
+
+  navigateToServiceCall(item: any): void {
+    try {
+      console.log('=== START navigateToServiceCall ===');
+      console.log('Full item object:', JSON.stringify(item, null, 2));
+      
+      // Create query parameters with all necessary data
+      const queryParams = {
+        visitId: item.idVisit,
+        clientId: item.idClient || 0,
+        spaId: item.idSpa || 0,
+        technicianId: this.techServiceJobsForm.get('technicianId')?.value || 0,
+        serviceCallId: item.idServiceCall || 0
+      };
+      
+      console.log('Query params before encryption:', queryParams);
+      const encryptedParams = this.commonservice.encrypt(JSON.stringify(queryParams));
+      console.log('Encrypted params:', encryptedParams);
+      
+      const baseUrl = `${window.location.origin}/#/`;
+      const newUrl = this.router.serializeUrl(
+        this.router.createUrlTree(['/web/technician/manage-technician'], {
+          queryParams: { id: encryptedParams },
+        })
+      );
+
+      console.log('Final URL:', `${baseUrl}${newUrl}`);
+      
+      // Open in new tab
+      window.open(`${baseUrl}${newUrl}`, '_blank');
+      console.log('=== END navigateToServiceCall ===');
+    } catch (error: any) {
+      console.error('Error navigating to service call:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack
+      });
+      this.toaster.error('Failed to open service call details');
+    }
+  }
+
+  // Add page focus event handler
+  @HostListener('window:focus')
+  onFocus() {
+    if (this.techServiceJobsForm.valid) {
+      this.onSearchServiceJobsByDate();
+    }
   }
 }

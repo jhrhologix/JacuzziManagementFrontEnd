@@ -72,20 +72,29 @@ queryPrms() {
   })
 }
 convertToken(token: any) {
-  
-  this.adminToken = this.commonservice.decrypt(token);
-  this.adminToken = this.adminToken.split('$'); // Assuming there's more than one part
-  const serviceCallIdString = this.adminToken[0]; // Adjust index if needed
-  const parsedserviceCallId = JSON.parse(serviceCallIdString);
-  this.serviceCallId = parsedserviceCallId.serviceCallId;
-
-   
+  try {
+    console.log('Received token:', token);
+    this.adminToken = this.commonservice.decrypt(token);
+    console.log('Decrypted token:', this.adminToken);
+    const parsedData = JSON.parse(this.adminToken);
+    console.log('Parsed data:', parsedData);
+    this.serviceCallId = parsedData.serviceCallId;
+    console.log('Decrypted serviceCallId:', this.serviceCallId);
+  } catch (error) {
+    console.error('Error decrypting token:', error);
+    console.error('Token that failed to decrypt:', token);
+  }
 }
-loadTechnicianServiceCalls(): void{
-  
+loadTechnicianServiceCalls(): void {
+  if (!this.serviceCallId) {
+    console.warn('No serviceCallId available');
+    return;
+  }
+
   this.technicianService.getServiceCallDetailsForTechnician(this.serviceCallId).subscribe(
     (response: any) => {
-      if (response.data) {
+      console.log('Service call response:', response);
+      if (response?.statusCode === 200 && response?.data) {
         this.loadImage(this.serviceCallId);
         
         const receptionDate = this.formatServicecallDate(response.data.receptionDate);
@@ -94,7 +103,7 @@ loadTechnicianServiceCalls(): void{
         this.serviceCallForm.patchValue({
           serviceCallNumber: response.data.numServiceCall,
           dateReception: receptionDate,
-          datePlacement:placementDate,
+          datePlacement: placementDate,
           poolSpecialist: response.data.poolSpecialist,
           issueProblem: response.data.issue,
           status: response.data.serviceCallStatus,
@@ -102,10 +111,12 @@ loadTechnicianServiceCalls(): void{
           notes: response.data.notes,
           comments: response.data.comments
         });
+      } else {
+        console.warn('Invalid response format or no data:', response);
       }
     },
     error => {
-      console.error('Error fetching service call details', error);
+      console.error('Error fetching service call details:', error);
     }
   );
 }

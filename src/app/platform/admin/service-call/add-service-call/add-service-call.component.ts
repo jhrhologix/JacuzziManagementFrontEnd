@@ -834,11 +834,19 @@ sendmail(){
   visitId : this.visitId,
   emailTemplateId : this.templateId
   }
-  this.servicecallservice.sendMail(rqstmodel).subscribe((response : any)=>{
-if(response.isSuccess == true){
-
-}
-  })
+  this.servicecallservice.sendMail(rqstmodel).subscribe({
+    next: (response : any) => {
+      if(response.isSuccess == true){
+        this.toaster.success('Email sent successfully');
+      } else {
+        this.toaster.error(response.message || 'Failed to send email');
+      }
+    },
+    error: (error) => {
+      console.error('Error sending email:', error);
+      this.toaster.error(error.message || 'An error occurred while sending the email');
+    }
+  });
 }
 updateMinToDate() {
   

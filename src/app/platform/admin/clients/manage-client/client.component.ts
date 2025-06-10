@@ -249,7 +249,7 @@ selectClient(event : any){
     
     this.clientservice.getClientDataById(this.clientid).subscribe({
       next: (response : any) => {
-        console.log('Client data response:', response);
+        console.log('Raw API response:', response);
         if(response.isSuccess == true || response.Value)
         {
           // Handle both lowercase 'value' and uppercase 'Value'
@@ -269,9 +269,33 @@ selectClient(event : any){
           }
           
           if (this.selectedClient && this.selectedClient.length > 0) {
-            console.log('Patching form with data:', this.selectedClient[0]);
-            this.clientForm.patchValue(this.selectedClient[0]);
-            if (!this.selectedClient[0].house || !this.selectedClient[0].streetNumber) {
+            console.log('Raw client data before processing:', JSON.stringify(this.selectedClient[0], null, 2));
+            const clientData = { ...this.selectedClient[0] };
+            
+            // Debug logging for ExternalBreaker
+            console.log('ExternalBreaker value from API:', {
+              IsExternalBreaker: clientData.IsExternalBreaker,
+              isExternalBreaker: clientData.isExternalBreaker,
+              ExternalBreaker: clientData.ExternalBreaker,
+              externalBreaker: clientData.externalBreaker,
+              rawClientData: clientData
+            });
+            
+            // Set initial values independently
+            this.clientForm.patchValue({
+              ...clientData,
+              raisedSpa: clientData.raisedSpa || false,
+              ExternalBreaker: clientData.IsExternalBreaker === true || clientData.isExternalBreaker === true
+            });
+            
+            // Log the form value after patching
+            console.log('Form value after patching:', {
+              formValue: this.clientForm.get('ExternalBreaker')?.value,
+              rawValue: clientData.isExternalBreaker,
+              clientData: clientData
+            });
+            
+            if (!clientData.house || !clientData.streetNumber) {
               this.clientForm.patchValue({
                 house: '2'
               });
@@ -319,7 +343,6 @@ createformgroup(){
     city: [{ value: '', disabled: true }],
     province: [{ value: '9', disabled: true }],
     postalCode: [{ value: '', disabled: true }],
-    //area: [{ value: '', disabled: true },[Validators.required]],
     house: [{ value: '2', disabled: true }],
     streetNumber: [{ value: '', disabled: true },[Validators.required]],
     home: [{ value: '', disabled: true }],
@@ -334,11 +357,15 @@ createformgroup(){
     secondaryEmail: [{ value: '', disabled: true }, [Validators.email]],
     notes: [{ value: '', disabled: true }],
     comments: [{ value: '', disabled: true }],
-    externalbreaker:[{ value: false, disabled: true }],
+    ExternalBreaker: [{ value: false, disabled: true }],
     both : [{ value: false, disabled: true }],
     sms : [{ value: false, disabled: true }],
     emailClient : [{ value: false, disabled: true }]
-    
+  });
+
+  // Add value change subscription to log ExternalBreaker changes
+  this.clientForm.get('ExternalBreaker')?.valueChanges.subscribe(value => {
+    console.log('ExternalBreaker value changed:', value);
   });
 }
 createformgroup1(){
@@ -811,7 +838,11 @@ onSubmit(){
   
   if(this.clientid> 0){
     requestModel.clientId = this.clientid;
-    this. isLoading = true;
+    // Ensure ExternalBreaker is set correctly
+    requestModel.ExternalBreaker = this.clientForm.get('ExternalBreaker')?.value === true;
+    console.log('Saving ExternalBreaker value:', requestModel.ExternalBreaker);
+    
+    this.isLoading = true;
     setTimeout(() => {
       
     this.clientservice.updateclient(requestModel).subscribe(( Response: any ) =>{
@@ -825,7 +856,7 @@ onSubmit(){
          setTimeout(() => {
           this.selectClient({ clientID: this.clientid });
         }, 300);
-        this. isLoading=false;
+        this.isLoading=false;
          this.searchQuery = '';
       }
       else{

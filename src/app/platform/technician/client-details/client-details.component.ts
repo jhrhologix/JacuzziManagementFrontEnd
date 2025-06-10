@@ -1,4 +1,4 @@
-import { Component, ElementRef } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FilterModel, SearchFilterModel } from '../../../core/models/common-model';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -20,12 +20,14 @@ import { CommonModule } from '@angular/common';
   templateUrl: './client-details.component.html',
   styleUrl: './client-details.component.scss'
 })
-export class ClientDetailsComponent {
+export class ClientDetailsComponent implements OnInit, OnChanges {
+  @Input() clientData: any;
   clientlist: any[] = [];
   searchclientlist: any[] = [];
   filtermodel: FilterModel;
   searchfiltermodel: SearchFilterModel;
   selectedClient: any[] = [];
+  provinces: any[] = [];
 
   upComingServiceCall: any;
   clientTechForm: FormGroup;
@@ -84,19 +86,29 @@ export class ClientDetailsComponent {
     this.translate.setDefaultLang('en');
     this.createClientForm();
   }
+
   ngOnInit() {
+    if (this.clientData) {
+      this.updateFormWithClientData();
+    }
     this.queryPrms();
+    this.getAllProvinces();
     this.getClientDetailByVisitId();
-
-
   }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['clientData'] && changes['clientData'].currentValue) {
+      this.updateFormWithClientData();
+    }
+  }
+
   queryPrms() {
     this.route.queryParams.subscribe(params => {
       this.convertToken(params['id']);
     });
   }
+
   convertToken(token: any) {
-    
     this.adminToken = this.commonservice.decrypt(token);
     this.adminToken = this.adminToken.split('$'); // Assuming there's more than one part
     const visitIdString = this.adminToken[0]; // Adjust index if needed
@@ -105,160 +117,218 @@ export class ClientDetailsComponent {
 
     var parsedTechnicianId = sessionStorage.getItem('technicianId');
     if (parsedTechnicianId !== null) {
-
       this.technicianId = parseInt(parsedTechnicianId);
     }
     var parsedClientId = sessionStorage.getItem('clientId');
     if (parsedClientId !== null) {
-
       this.clientId = parseInt(parsedClientId);
     }
     var parsedSpaId = sessionStorage.getItem('spaId');
     if (parsedSpaId !== null) {
-
       this.spaId = parseInt(parsedSpaId);
     }
     var parsedTechnicianName = sessionStorage.getItem('technicianName');
     if (parsedTechnicianName !== null) {
-
       this.technicianName = parsedTechnicianName;
     }
     // alert('visitId:' + this.visitId + ', clietId:' + this.clientId + ', spaId:' + this.spaId + ', techId:' + this.technicianId);
-
   }
-  createClientForm(): void {
+
+  private createClientForm() {
     this.clientTechForm = this.formBuilder.group({
-      visitId: [0],
-      clientId: [0],
       numClient: [''],
-      isRaised: [true],
       clientName: [''],
-       firstName: [''],
-       lastName: [''],
-      spouseFirstName: [''],
-      spouseLastName: [''],
+      lastName: [''],
       apartNo: [''],
       streetNumber: [''],
       street: [''],
       city: [''],
       province_labelFr: [''],
       postalCode: [''],
-      area_abbreviationFr: [''],
       home: [''],
       spouse: [''],
       work: [''],
       other: [''],
-      ext1: [''],
-      ext2: [''],
-      ext3: [''],
-      ext4: [''],
-      comments: [''],
       notes: [''],
-      modifiedBy: ['']
-
+      comments: [''],
+      externalBreaker: [false],
+      spaLifted: [false]
     });
-     this.clientTechForm.get('numClient')?.disable();
-     
-     this.clientTechForm.get('clientName')?.disable();
-     this.clientTechForm.get('firstName')?.disable();
-     this.clientTechForm.get('lastName')?.disable();
-     this.clientTechForm.get('spouseFirstName')?.disable();
-     this.clientTechForm.get('spouseLastName')?.disable();
-     this.clientTechForm.get('apartNo')?.disable();
-     this.clientTechForm.get('streetNumber')?.disable();
-     this.clientTechForm.get('street')?.disable();
-     this.clientTechForm.get('city')?.disable();
-     this.clientTechForm.get('province_labelFr')?.disable();
-     this.clientTechForm.get('postalCode')?.disable();
-     this.clientTechForm.get('area_abbreviationFr')?.disable();
-     this.clientTechForm.get('home')?.disable();
-     this.clientTechForm.get('spouse')?.disable();
-     this.clientTechForm.get('work')?.disable();
-     this.clientTechForm.get('other')?.disable();
-    //  this.clientTechForm.get('numClient')?.disable();
-    //  this.clientTechForm.get('numClient')?.disable();
 
-
+    // Add value change subscriptions to log changes
+    this.clientTechForm.get('externalBreaker')?.valueChanges.subscribe(value => {
+      console.log('ExternalBreaker value changed:', value);
+    });
+    this.clientTechForm.get('spaLifted')?.valueChanges.subscribe(value => {
+      console.log('SpaLifted value changed:', value);
+    });
   }
-  getClientDetailByVisitId(): void {
-    
-    if (this.visitId > 0) {
-      this.techService.getClientDetailForTechincian(this.visitId).subscribe((response: any) => {
-        if (response.isSuccess  === true) {
-          
-          this.cltDetailList = response.value;
-          var nts = response.value[0].notes;
-          this.notes= nts;
-          
-          var cmt = response.value[0].comments;
-          this.comments= cmt;
 
-          this.numClient= response.value[0].numClient;
-          var fName= response.value[0].firstName;
-          this.firstName = fName;
-          this.lastName = response.value[0].lastName;
-          this.spouseFirstName = response.value[0].spouseFirstName;
-          this.spouseLastName = response.value[0].spouseLastName;
-          this.apartNo= response.value[0].apartNo;
-          this.streetNumber = response.value[0].streetNumber;
-          this.street = response.value[0].street;
-          this.city = response.value[0].city;
-          this.province_labelFr = response.value[0].province_labelFr;
-          this.postalCode = response.value[0].postalCode;
-          this.area_abbreviationFr = response.value[0].area_abbreviationFr;
-          this.home = response.value[0].home;
-          this.spouse = response.value[0].spouse;
-          this.work = response.value[0].work;
-          this.other = response.value[0].other;
-        //  alert('Nclt:' + this.numClient + ', fName:' + this.firstName +  ', lastName:'  + this.lastName + ',city:' + this.city  + ', pin code:'  + this.postalCode +  'Notes:' + nts + ', commm:' + cmt);
-          this.clientTechForm.patchValue({
-            visitId: this.visitId,
-            numClient:this.numClient,
-           firstName:this.firstName,
-           lastName:this.lastName,
-           clientName: this.firstName + ' ' + this.lastName,
-           spouseFirstName:this.spouseFirstName,
-           spouseLastName:this.spouseLastName,
-           apartNo:this.apartNo,
-           streetNumber:this.streetNumber,
-           street:this.street,
-           city:this.city,
-           province_labelFr:this.province_labelFr,
-           postalCode:this.postalCode,
-            area_abbreviationFr:this.area_abbreviationFr,
-            home:this.home,
-            spouse:this.spouse,
-            work:this.work,
-            other:this.other,
-            notes: nts,
-            comments: cmt,
-            modifiedBy: this.technicianName
-          });
+  private updateFormWithClientData() {
+    console.log('Updating form with client data:', this.clientData);
+    if (this.clientData) {
+      const province = this.provinces.find(p => p.id === parseInt(this.clientData.province));
+      const formData = {
+        numClient: this.clientData.clientNumber || '',
+        clientName: this.clientData.firstName || '',
+        lastName: this.clientData.lastName || '',
+        apartNo: this.clientData.app || '',
+        streetNumber: this.clientData.civic || '',
+        street: this.clientData.street || '',
+        city: this.clientData.city || '',
+        province_labelFr: province ? province.name : '',
+        postalCode: this.clientData.postalCode || '',
+        home: this.clientData.home || '',
+        spouse: this.clientData.spouse || '',
+        work: this.clientData.work || '',
+        other: this.clientData.other || '',
+        notes: this.clientData.notes || '',
+        comments: this.clientData.comments || '',
+        externalBreaker: this.clientData.isExternalBreaker === true,
+        spaLifted: this.clientData.raisedSpa === true
+      };
+      console.log('Setting form values:', formData);
+      this.clientTechForm.patchValue(formData);
+    }
+  }
+
+  getAllProvinces() {
+    this.techService.getAllProvinces().subscribe({
+      next: (response: any) => {
+        if (response.isSuccess == true) {
+          this.provinces = response.value || response.Value || [];
         }
+      },
+      error: (error) => {
+        console.error('Error fetching provinces:', error);
+      }
+    });
+  }
 
-      });
+  getClientDetailByVisitId(): void {
+    this.techService.getClientDetailForTechnician(this.clientId).subscribe({
+      next: (response: any) => {
+        if (response) {
+          this.clientData = response;
+          console.log('Full client data:', this.clientData);
+          const province = this.provinces.find(p => p.id === parseInt(this.clientData.province));
+          this.clientTechForm.patchValue({
+            numClient: this.clientData.clientNumber,
+            clientName: this.clientData.firstName,
+            lastName: this.clientData.lastName,
+            apartNo: this.clientData.app,
+            streetNumber: this.clientData.civic,
+            street: this.clientData.street,
+            city: this.clientData.city,
+            province_labelFr: province ? province.name : '',
+            postalCode: this.clientData.postalCode,
+            home: this.clientData.home,
+            spouse: this.clientData.spouse,
+            work: this.clientData.work,
+            other: this.clientData.other,
+            notes: this.clientData.notes,
+            comments: this.clientData.comments,
+            externalBreaker: this.clientData.isExternalBreaker === true,
+            spaLifted: this.clientData.raisedSpa === true
+          });
+          console.log('External breaker value:', this.clientData.raisedSpa);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching client details:', error);
+      }
+    });
+  }
+
+  private clearClientFields(): void {
+    this.notes = '';
+    this.comments = '';
+    this.numClient = '';
+    this.firstName = '';
+    this.lastName = '';
+    this.spouseFirstName = '';
+    this.spouseLastName = '';
+    this.apartNo = '';
+    this.streetNumber = '';
+    this.street = '';
+    this.city = '';
+    this.province_labelFr = '';
+    this.postalCode = '';
+    this.area_abbreviationFr = '';
+    this.home = '';
+    this.spouse = '';
+    this.work = '';
+    this.other = '';
+    
+    // Reset form
+    this.clientTechForm.reset();
+  }
+
+  onUpdateClientData(): void {
+    if (!this.clientTechForm.valid) {
+      this.toaster.error('Please fill in all required fields', 'Error');
+      return;
     }
 
-  }
-  onUpdateClientData(): void {
-
     this.isLoading = true;
-
-    const requestModel: any = this.clientTechForm.value;
     
-    this.techService.updateClientDetailByTechincian(requestModel).subscribe((Response: any) => {
-      
-      if (Response.value.isSuccess === true) {
-        this.isLoading = false;
-        this.getClientDetailByVisitId();
-        this.toaster.success('Client detail updated successfully.','Success');
-        ///alert('Client detail updated successfully.');
+    // Log the raw form values first
+    console.log('Raw form values:', {
+      externalBreaker: this.clientTechForm.get('externalBreaker')?.value,
+      spaLifted: this.clientTechForm.get('spaLifted')?.value
+    });
 
-      }
-      else {
-        this.toaster.error('Error updating client details','Error');
+    const formData = {
+      ...this.clientData,
+      ...this.clientTechForm.value,
+      visitId: this.visitId,
+      modifiedBy: localStorage.getItem('userName') || 'System'
+    };
+
+    // Set both uppercase and lowercase versions of the checkbox values
+    const externalBreakerValue = Boolean(this.clientTechForm.get('externalBreaker')?.value);
+    const raisedSpaValue = Boolean(this.clientTechForm.get('spaLifted')?.value);
+    
+    formData.IsExternalBreaker = externalBreakerValue;
+    formData.isExternalBreaker = externalBreakerValue;
+    formData.IsRaisedSpa = raisedSpaValue;
+    formData.raisedSpa = raisedSpaValue;
+    
+    // Log the final data being sent
+    console.log('Final data being sent:', {
+      IsExternalBreaker: formData.IsExternalBreaker,
+      isExternalBreaker: formData.isExternalBreaker,
+      IsRaisedSpa: formData.IsRaisedSpa,
+      raisedSpa: formData.raisedSpa,
+      rawFormValues: this.clientTechForm.value,
+      clientData: this.clientData
+    });
+    
+    this.techService.updateClientDetailByTechincian(formData).subscribe({
+      next: (response: any) => {
+        if (response?.value?.isSuccess === true) {
+          this.toaster.success('Client details updated successfully', 'Success');
+          // Log the response
+          console.log('Update response:', response);
+        } else {
+          this.toaster.error('Error updating client details', 'Error');
+          console.error('Update failed:', response);
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error updating client details:', error);
+        this.toaster.error('Error updating client details', 'Error');
         this.isLoading = false;
       }
     });
+  }
+
+  getFormControl(controlName: string): FormControl<boolean> {
+    const control = this.clientTechForm.get(controlName);
+    if (!control) {
+      return new FormControl<boolean>(false, { nonNullable: true });
+    }
+    return control as FormControl<boolean>;
   }
 }

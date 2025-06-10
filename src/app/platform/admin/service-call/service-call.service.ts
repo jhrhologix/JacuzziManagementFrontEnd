@@ -85,7 +85,7 @@ createtechniciandetail(model:any){
   return this.httprequest.post(`${environment.apiUrl}/${this.createTechnicianDetailsUrl}`,model)
 }
 getservicecallbyid(id:number){
-  return this.httprequest.post(`${environment.apiUrl}/${this.getservicecallbyidUrl}${id}`,null)
+  return this.httprequest.post(`${environment.apiUrl}/${this.getservicecallbyidUrl}${id}`, null)
 }
 deleteservicecall(id:number){
   return this.httprequest.post(`${environment.apiUrl}/${this.deleteservicecallUrl}${id}`,null)
