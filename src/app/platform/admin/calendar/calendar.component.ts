@@ -66,6 +66,7 @@ toDate: any = null;
   minToDate: string = '';
   setPriority = false;
   priority: any;
+  filtersCollapsed = false;
 
   constructor(
     
@@ -90,24 +91,39 @@ toDate: any = null;
     this.calendarModal = new window.bootstrap.Modal(
       document.getElementById('calendarModal')
     );
-    this.createformgroup();
     this.generateYearRange();
+    this.getMonthes();
+    this.createformgroup();
     this.getTechnicianList();
     this.onTechnicianChange();
     this.getAssignedJobList();
     this.getServiceStatusList();
     this.getClientsList();
-    this.getMonthes();
-  
   }
+  
   createformgroup() {
+    // Get current year and month
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+    
     this.calendarForm = new FormGroup({
       fromDate: new FormControl(null),
       toDate: new FormControl(null),
-      selectedYear: new FormControl(''),
-      selectedMonth: new FormControl(''),
+      selectedYear: new FormControl(currentYear.toString()),
+      selectedMonth: new FormControl(currentMonth.toString()),
     });
+    
+    // Set the selected values for the component
+    this.selectedYear = currentYear.toString();
+    this.selectedMonth = currentMonth.toString();
+    
+    // Apply the filter with default values after a short delay to ensure data is loaded
+    setTimeout(() => {
+      this.onToDateChange();
+    }, 100);
   }
+
   private getTechnicianList() {
     this.calendarService.getTechniciansList(0).subscribe((response: any) => {
       if (response && response.value) {
@@ -410,11 +426,15 @@ toDate: any = null;
     const rqstmodel: any = {
       Priority: selectedValue,
       VisitId: job.idVisit,
-      date:this.selectedDate,
-      technicianId:job.technicianId
+      date: this.selectedDate,
+      technicianId: job.technicianId,
+      ispriorityset: true
     }
     
+    console.log('Sending priority request:', rqstmodel);
+    
     this.calendarService.addPriority(rqstmodel).subscribe((response: any) => {
+      console.log('Priority response:', response);
       this.setPriority = true;
       if (response.value === "Priority updated successfully.") {
         this.toaster.success('Priority updated successfully.', 'Success');
@@ -557,5 +577,9 @@ toDate: any = null;
       this.minToDate = fromDate; // Set min date for ToDate input
       this.calendarForm.get('toDate')?.updateValueAndValidity(); // Trigger validation
     }
+  }
+
+  toggleFilters(): void {
+    this.filtersCollapsed = !this.filtersCollapsed;
   }
 }

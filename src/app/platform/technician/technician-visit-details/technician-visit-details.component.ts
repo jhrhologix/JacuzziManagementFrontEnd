@@ -6,6 +6,7 @@ import { TechnicianVisitServiceService } from './technician-visit-service.servic
 import { Router } from '@angular/router';
 import { CommonService } from '../../../core/services/common.service';
 import { TranslateModule } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { GooglemapComponent } from '../googlemap/googlemap.component';
 import { VisitService } from './visit.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -54,7 +55,8 @@ export class TechnicianVisitDetailsComponent implements OnInit {
     private toaster: ToastrService,
     private datePipe: DatePipe,
     private visitService: VisitService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {
     this.currentDate = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
   }
@@ -150,7 +152,6 @@ export class TechnicianVisitDetailsComponent implements OnInit {
         console.log('API Response:', response);
         if (response && response.value) {
           this.seriveJobsList = response.value
-            .sort((a: any, b: any) => a.priority - b.priority)
             .map((job: any, index: number) => ({
               ...job,
               displayIndex: index + 1,
@@ -193,14 +194,15 @@ export class TechnicianVisitDetailsComponent implements OnInit {
 
     // Check for uncompleted visits before this one
     const hasUncompletedBefore = this.seriveJobsList.some(v => 
-      v.completed === false && 
+      (v.completed === false || v.completed === 0) && 
       this.seriveJobsList.indexOf(v) < this.seriveJobsList.indexOf(item)
     );
 
     if (hasUncompletedBefore) {
+      const message = this.translate.instant('VISIT.IncompleteVisitsBefore');
       const proceed = await this.showConfirmation(
         'Warning',
-        'There are uncompleted visits before this one. Proceed anyways?'
+        message
       );
       if (!proceed) return;
     }

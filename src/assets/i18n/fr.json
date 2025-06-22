@@ -323,6 +323,9 @@
   "CLIENT": {
     "ExternalBreaker": "Disjoncteur Externe",
     "SpaLifted": "Spa Soulevé"
+  },
+  "VISIT": {
+    "IncompleteVisitsBefore": "Il y a des visites incomplètes avant celle-ci, continuer quand même ?"
   }
 }
   

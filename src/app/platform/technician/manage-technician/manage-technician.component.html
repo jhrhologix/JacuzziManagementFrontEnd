@@ -110,11 +110,11 @@
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label"> From </label>
-                  <input type="time" class="form-control" formControlName="timeFrom">
+                  <input type="time" class="form-control" formControlName="timeFrom" step="900">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label"> To </label>
-                  <input type="time" class="form-control" formControlName="timeTo">
+                  <input type="time" class="form-control" formControlName="timeTo" step="900">
                 </div>
               </div>
               <!-- Service Requester and Buttons -->
@@ -196,7 +196,13 @@
                 </div>
                 <div class="col-md-4">
                   <label class="form-label"> {{ 'SERVICE_CALL.NextVisit' | translate }} </label>
-                  <input type="time" class="form-control" formControlName="durationNextVisit">
+                  <input type="time" 
+                         class="form-control" 
+                         formControlName="durationNextVisit" 
+                         (change)="onDurationChange($event)" 
+                         step="900"
+                         min="00:00"
+                         max="23:45">
                 </div>
               </div>
               <!-- Pending Parts and Notes -->

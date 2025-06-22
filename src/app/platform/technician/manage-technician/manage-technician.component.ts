@@ -301,38 +301,64 @@ dataSourceService: any[] = [];
 
   private formatTimeSpan(time: string): string {
     if (!time) return '';
-    
-    // Parse the time string
-    const [hours, minutes] = time.split(':').map(Number);
-    
-    // Round minutes to nearest 15
-    const roundedMinutes = Math.round(minutes / 15) * 15;
-    
-    // Format as hours and minutes
-    return `${hours}h ${roundedMinutes}m`;
+    // If the time contains a space, it's a datetime string
+    if (time.includes(' ')) {
+      const [date, timePart] = time.split(' ');
+      return timePart;
+    }
+    return time;
   }
 
   convertMinutesToHours(minutes: number): string {
     if (!minutes) return '';
     const hours = Math.floor(minutes / 60);
-    const remainingMinutes = Math.round((minutes % 60) / 15) * 15;
-    return `${hours}h ${remainingMinutes}m`;
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   }
 
   extractTime(datetimeString: string): string {
     if (!datetimeString) return '';
+    // If it's already just a time string, return it
+    if (!datetimeString.includes(' ')) return datetimeString;
+    
     const date = new Date(datetimeString);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
   }
 
   convertToDateFormat(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return date.toISOString();
   }
 
-  
-  
+  // Modified duration handling
+  onDurationChange(event: any) {
+    const value = event.target.value;
+    if (!value) return;
+    
+    // Convert to minutes
+    const [hours, minutes] = value.split(':').map(Number);
+    const totalMinutes = (hours * 60) + minutes;
+    
+    // Round to nearest 15 minutes
+    const roundedMinutes = Math.round(totalMinutes / 15) * 15;
+    
+    // Convert back to HH:mm format
+    const roundedHours = Math.floor(roundedMinutes / 60);
+    const remainingMinutes = roundedMinutes % 60;
+    
+    const formattedTime = `${roundedHours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}`;
+    this.visitForm.get('durationNextVisit')?.setValue(formattedTime, { emitEvent: false });
+  }
+
+  // Add method to format time consistently
+  formatTimeForDisplay(time: string): string {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  // Modify loadTechnicianDetails to handle time consistently
   loadTechnicianDetails(): void {
     this.isLoading = true;
     const id = this.visitId;
@@ -385,12 +411,17 @@ dataSourceService: any[] = [];
           // Set payment mode based on payment method
           const paymentMode = this.technicianData.paymentMethod === 0 || this.technicianData.paymentMethod === null || this.technicianData.paymentMethod === '';
 
+          // Format times consistently
+          const timeFrom = this.formatTimeSpan(this.technicianData.dateVisit);
+          const timeTo = this.formatTimeSpan(this.technicianData.hourVisit);
+          const duration = this.formatTimeSpan(this.technicianData.nextVisitDuration);
+
           this.visitForm.patchValue({
             technician: this.technicianData.technicianName,
             dateOfVisit: this.formatServicecallDate(this.technicianData.dateOfVisit),
-            timeFrom: this.technicianData.dateVisit,
-            timeTo: this.technicianData.hourVisit,
-            durationNextVisit: this.technicianData.nextVisitDuration,
+            timeFrom: timeFrom,
+            timeTo: timeTo,
+            durationNextVisit: duration,
             completed: this.technicianData.complete,
             paid: this.technicianData.paid === true,
             paymentMode: paymentMode,
@@ -528,9 +559,9 @@ dataSourceService: any[] = [];
       const model = {
         idVisit: this.visitId,
         ...this.visitForm.value,
-        startDate: formattedStartTime,
-        endDate: formattedEndTime,
-        nextVisitDuration: this.visitForm.get('durationNextVisit')?.value,
+        startDate: this.formatTimeSpan(this.visitForm.get('timeFrom')?.value),
+        endDate: this.formatTimeSpan(this.visitForm.get('timeTo')?.value),
+        nextVisitDuration: this.formatTimeSpan(this.visitForm.get('durationNextVisit')?.value),
         completed: this.visitForm.get('completed')?.value,
         neededParts: this.visitForm.get('pendingParts')?.value,
         notes: this.visitForm.get('notes')?.value,

@@ -578,32 +578,31 @@ if(this.createServiceCallForm.valid){
 }
 
 private formatTimeSpan(time: string): string {
-  if (!time) {
-    // Handle the case where 'time' is null, undefined, or empty
-    console.error('Invalid time input:', time);
-    return '00:00'; // Return a default value, or handle it based on your requirements
+  if (!time) return '';
+  // If the time contains a space, it's a datetime string
+  if (time.includes(' ')) {
+    const [date, timePart] = time.split(' ');
+    return timePart;
   }
-
-  const [hours, minutes] = time.split(':');
-  
-  // Handle invalid time format (e.g., missing ':' or invalid hours/minutes)
-  if (!hours || !minutes) {
-    console.error('Invalid time format:', time);
-    return '00:00'; // Return a default value, or handle it based on your requirements
-  }
-
-  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+  return time;
 }
-gettechniciandetail(){
-
-  this.servicecallservice.getTechnicianDetails(this.serviceCallId).subscribe((response:any)=>{
-    if(response)
-      //this.isEditServicecall=true;
-      this.datasource = response.value;
-      //this.visitId = response.value.visitId;
-
-  }) 
-  // this.datasource = []
+gettechniciandetail() {
+  this.isLoading = true;
+  this.servicecallservice.getTechnicianDetails(this.serviceCallId).subscribe(
+    (response: any) => {
+      if (response.value !== null && response.isSuccess === true) {
+        this.isLoading = false;
+        this.datasource = response.value;
+        
+        // Format times consistently
+        this.datasource = this.datasource.map(item => ({
+          ...item,
+          hourVisit: this.formatTimeSpan(item.hourVisit),
+          durationTime: this.formatTimeSpan(item.durationTime)
+        }));
+      }
+    }
+  );
 }
 getTechnicianNamelist(){
   this.servicecallservice.getTechnicianNamelist().subscribe((response:any)=>{

@@ -296,5 +296,8 @@
   "CLIENT": {
     "ExternalBreaker": "External Breaker",
     "SpaLifted": "Spa Lifted"
+  },
+  "VISIT": {
+    "IncompleteVisitsBefore": "There are incomplete visits before this one, proceed anyways?"
   }
 }
