@@ -146,9 +146,10 @@ this.smsTemplateForm = new FormGroup('');
           ...client,
           selectrow: true,
           // Set initial SMS checkbox state based on client preference and phone number availability
-          sMS: client.sMS && client.mobileNumber && client.mobileNumber.trim() !== '',
+          // Handle both uppercase and lowercase field names from API
+          sMS: (client.sMS || client.sms) && client.mobileNumber && client.mobileNumber.trim() !== '',
           // Set initial email checkbox state based on client preference and email availability
-          emailSend: client.emailClient && client.email && client.email.includes('@')
+          emailSend: (client.emailClient || client.emailclient) && client.email && client.email.includes('@')
         }));
         
         if(this.clientList.length > 0)
@@ -348,7 +349,7 @@ onSMSTemplateSubmit(): void {
 
 getSelectedEmails(): string[] {
   return this.clientList
-    .filter(client => client.selectrow && client.emailSend && client.email && client.email.includes('@'))
+    .filter(client => client.selectrow && client.email && client.email.includes('@'))
                         .map(client => client.email);
 }
 
@@ -472,15 +473,8 @@ const selectedEmails = this.getSelectedEmails();
 onRowSelectionChange(client: any, event: any): void {
   client.selectrow = event.target.checked;
   
-  if (event.target.checked) {
-    // When checking a row, set default values based on availability
-    client.sMS = client.mobileNumber && client.mobileNumber.trim() !== '';
-    client.emailSend = client.email && client.email.includes('@');
-  } else {
-    // When unchecking a row, uncheck both SMS and email
-    client.sMS = false;
-    client.emailSend = false;
-  }
+  // Removed: Automatic SMS/email checking when row is selected
+  // Row selection is now completely independent from preference checkboxes
 }
 
 // Method to handle SMS checkbox changes
@@ -509,10 +503,8 @@ onSMSChange(client: any, event: any): void {
 
   client.sMS = event && event.target ? event.target.checked : false;
   
-  // If both SMS and email are unchecked, uncheck the row
-  if (!client.sMS && !client.emailSend) {
-    client.selectrow = false;
-  }
+  // Removed: Automatic row unchecking when both SMS and email are unchecked
+  // This allows users to keep their preferences independent of row selection
 }
 
 // Method to handle email checkbox changes
@@ -531,10 +523,8 @@ onEmailChange(client: any, event: any): void {
 
   client.emailSend = event && event.target ? event.target.checked : false;
   
-  // If both SMS and email are unchecked, uncheck the row
-  if (!client.sMS && !client.emailSend) {
-    client.selectrow = false;
-  }
+  // Removed: Automatic row unchecking when both SMS and email are unchecked
+  // This allows users to keep their preferences independent of row selection
 }
 
 sendSMS() {

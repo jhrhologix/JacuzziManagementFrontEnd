@@ -95,30 +95,120 @@ section.client_list_main {
 }
 
 
-button.btn.searchbuttonfilter {
-    padding: 0px 6px;
-    position: absolute;
-    right: 5px;
-    border-radius: 50%;
-    top: 8px;
-    width: 30px !important;
-    height: 30px;
+// Button styles moved inside input-group.serch
+
+// Add styles for the search input to ensure it's visible
+.input-group.serch {
+    position: relative !important;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    left: auto;
-    @media (max-width:1400px) {
-        width: 100%;
+    align-items: stretch;
+    
+    input.form-control {
+        flex: 1;
+        padding-right: 50px; // Make room for the button
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        height: 40px;
+        min-width: 0; // Allow input to shrink
+        
+        &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
     }
-    svg {
-        height: 20px;
-        width: 20px;
-        path{
-            fill : #1B619D;
+    
+    button.btn.searchbuttonfilter {
+        position: relative;
+        right: 0;
+        top: 0;
+        height: 100%;
+        width: 40px;
+        border-radius: 0 5px 5px 0;
+        z-index: 10;
+        padding: 0px 6px;
+        border: none;
+        background: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background: #0056b3;
         }
+
+        svg {
+            width: 20px;
+            height: 20px;
         }
+    }
 }
+
+// Ensure the search bar container has relative positioning for the popup
+.search_bar {
+    position: relative;
+}
+
+// Client list highlighting styles
+.client-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f8f9fa;
+    }
+
+    &.selected-client-highlight {
+        background-color: #f0fff0 !important; // Light green background for entire row
+        border-left: 4px solid #2196f3 !important; // Blue left border accent
+    }
+}
+
+// More specific selector to override table styles
+.table-responsive .table .client-row.selected-client-highlight {
+    background-color: #f0fff0 !important;
+    border-left: 4px solid #2196f3 !important;
+}
+
+// Even more specific for table cells
+.table-responsive .table .client-row.selected-client-highlight td {
+    background-color: #f0fff0 !important;
+}
+
+// Search popup styles
+.search_table {
+    // Removed popup positioning - now using as main table
+    // position: absolute;
+    // top: 100%;
+    // left: 0;
+    // right: 0;
+    // z-index: 1000;
+    // background: white;
+    // border: 1px solid #ddd;
+    // border-radius: 4px;
+    // box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    // max-height: 300px;
+    // overflow-y: auto;
+    
+    // Main table styling
+    width: 100%;
+    margin-top: 20px;
+    
+    .table {
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      
+      th, td {
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
 
 
 

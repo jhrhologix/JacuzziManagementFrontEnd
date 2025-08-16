@@ -420,7 +420,6 @@ toDate: any = null;
     this.stopScrolling();
   }
   onOptionSelect(event: any, job: any) {
-    
     const selectedValue = event.target.value;
     this.priority = selectedValue;
     const rqstmodel: any = {
@@ -430,11 +429,7 @@ toDate: any = null;
       technicianId: job.technicianId,
       ispriorityset: true
     }
-    
-    console.log('Sending priority request:', rqstmodel);
-    
     this.calendarService.addPriority(rqstmodel).subscribe((response: any) => {
-      console.log('Priority response:', response);
       this.setPriority = true;
       if (response.value === "Priority updated successfully.") {
         this.toaster.success('Priority updated successfully.', 'Success');

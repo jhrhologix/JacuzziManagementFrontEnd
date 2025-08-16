@@ -1,3 +1,33 @@
+<!--
+  CLIENT MANAGEMENT COMPONENT TEMPLATE
+  
+  PURPOSE: This template provides the user interface for the client management system,
+  including client search, selection, and detailed information display.
+  
+  STRUCTURE:
+  1. LEFT COLUMN (col-lg-4): Client search and list
+     - Search filter dropdown (Name, Spa Number, Service Call, etc.)
+     - Search input with popup results overlay
+     - Main client list table with sorting
+  2. RIGHT COLUMN (col-lg-8): Client details and forms
+     - Client information form
+     - Spa details management
+     - Service call history and upcoming calls
+  
+  RECENT IMPROVEMENTS:
+  - Added blur event to search input for better popup management
+  - Enhanced search popup visibility controls
+  - Improved client selection workflow
+  
+  KEY FEATURES:
+  - Multi-criteria client search
+  - Search popup with clickable results
+  - Responsive client list with sorting
+  - Comprehensive client form with validation
+  - Spa details association
+  - Service call tracking
+  - Multi-language support
+-->
 <section class="client_list_main">
     <div class="row position-relative">
         <div class="col-lg-4">
@@ -13,7 +43,7 @@
                     </select>
                 </div>
                 <div class="input-group mb-4 serch">
-                    <input (keyup)="applyFilter($event)" (keydown)="preventMultipleSpaces($event)" placeholder=" {{ 'HEADER.SEARCH' | translate }} "
+                    <input (keyup)="applyFilter($event)" (keydown)="preventMultipleSpaces($event); onSearchEnter($event)" (blur)="onSearchBlur()" placeholder=" {{ 'HEADER.SEARCH' | translate }} "
                         [(ngModel)]="searchQuery" class="form-control bg-none border-0">
                     <button (click)="removefilter()" class="btn btn-outline-primary searchbuttonfilter">
                         <!-- {{ 'HEADER.Remove_Button' | translate }}  -->
@@ -40,49 +70,14 @@
                     </div>
                 </div>
 
-                <div class="table-responsive search_table" *ngIf="isSearchtable">
-                    <table mat-table [dataSource]="searchclientlist" class="table">
-
-                        <ng-container matColumnDef="clientNumber">
-                            <th mat-header-cell *matHeaderCellDef>{{ 'HEADER.CLIENT_ID' | translate }}</th>
-                            <td mat-cell *matCellDef="let element" (click)="selectClient(element)">
-                                {{element.clientNumber}}
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="FirstName">
-                            <th mat-header-cell *matHeaderCellDef> {{ 'HEADER.FIRST_NAME' | translate }} </th>
-                            <td mat-cell *matCellDef="let element" (click)="selectClient(element)">
-                                {{element.firstName}}
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="LastName">
-                            <th mat-header-cell *matHeaderCellDef> {{ 'HEADER.LAST_NAME' | translate }} </th>
-                            <td mat-cell *matCellDef="let element" (click)="selectClient(element)"> {{element.lastName}}
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="SpouseFirstName">
-                            <th mat-header-cell *matHeaderCellDef>{{ 'HEADER.SpouseFirstName' | translate }}</th>
-                            <td mat-cell *matCellDef="let element" (click)="selectClient(element)">
-                                {{element.spouseFirstName}}
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="SpouseLastName">
-                            <th mat-header-cell *matHeaderCellDef>{{ 'HEADER.SpouseLastName' | translate }}</th>
-                            <td mat-cell *matCellDef="let element" (click)="selectClient(element)">
-                                {{element.spouseLastName}}
-                            </td>
-                        </ng-container>
-                        <tr mat-header-row *matHeaderRowDef="displayedSearchColumns"></tr>
-                        <tr mat-row *matRowDef="let row; columns: displayedSearchColumns;"></tr>
-                    </table>
-                </div>
+                <!-- Removed old popup search table - now using main table with search results -->
 
             </div>
 
 
             <div class="table-responsive">
                 <table mat-table [dataSource]="clientlist" class="table" matSort (matSortChange)="sortData($event)"
-                    matSortDirection="asc">
+                    matSortDirection="desc">
 
                     <ng-container matColumnDef="clientNumber">
                         <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'HEADER.CLIENT_ID' | translate }}</th>
@@ -103,8 +98,23 @@
                         </td>
                     </ng-container>
 
+                    <ng-container matColumnDef="spouseFirstName">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'HEADER.SpouseFirstName' | translate }}</th>
+                        <td mat-cell *matCellDef="let element" (click)="selectClient(element)">
+                            {{element.spouseFirstName}}
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="spouseLastName">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'HEADER.SpouseLastName' | translate }}</th>
+                        <td mat-cell *matCellDef="let element" (click)="selectClient(element)">
+                            {{element.spouseLastName}}
+                        </td>
+                    </ng-container>
+
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+                        [ngClass]="{'selected-client-highlight': selectedClientForHighlighting && (row.clientID === selectedClientForHighlighting.clientID || row.clientID === selectedClientForHighlighting.ClientID || row.clientNumber === selectedClientForHighlighting.clientNumber || row.clientNumber === selectedClientForHighlighting.ClientNumber)}"
+                        class="client-row">
                 </table>
             </div>
 

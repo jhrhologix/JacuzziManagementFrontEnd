@@ -1,5 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { SendingemailService } from '../../platform/admin/sending-email/sendingemail.service';
 
 interface Client {
@@ -19,10 +25,21 @@ interface Client {
 @Component({
   selector: 'app-sending-email',
   templateUrl: './sending-email.component.html',
-  styleUrls: ['./sending-email.component.scss']
+  styleUrls: ['./sending-email.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule
+  ],
+  providers: [MatSnackBar]
 })
 export class SendingEmailComponent implements OnInit {
   clients: Client[] = [];
+  message: string = ''; // Add missing message variable
 
   constructor(
     private emailService: SendingemailService,
@@ -30,12 +47,38 @@ export class SendingEmailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Initialize component
+    this.loadClients(); // Load clients on component initialization
   }
 
-  private sendSMS(mobileNumbers: string[], message: string): void {
+  private loadClients(): void {
+    // Load clients from the service
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    this.emailService.getClientEmailSendList(today).subscribe({
+      next: (response: any) => {
+        if (response && response.value) {
+          this.clients = response.value.map((client: any) => ({
+            ...client,
+            selectrow: false,
+            sMS: client.sMS || client.sms || false,
+            emailSend: client.emailClient || client.emailclient || false
+          }));
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading clients:', error);
+        this.snackBar.open('Error loading clients', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  public sendSMS(mobileNumbers: string[], message: string): void { // Make method public
     if (!mobileNumbers.length) {
-      console.error('No valid mobile numbers to send SMS to');
+      this.snackBar.open('No valid mobile numbers to send SMS to', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (!message.trim()) {
+      this.snackBar.open('Please enter a message', 'Close', { duration: 3000 });
       return;
     }
 
@@ -65,7 +108,7 @@ export class SendingEmailComponent implements OnInit {
     });
   }
 
-  private getSelectedMobileNumbers(): string[] {
+  public getSelectedMobileNumbers(): string[] { // Make method public
     const selectedClients = this.clients.filter(client => client.selectrow);
     const mobileNumbers: string[] = [];
 

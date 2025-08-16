@@ -231,7 +231,7 @@ export class TechnicianVisitDetailsComponent implements OnInit {
       this.hasInProgressVisit = true;
 
       // Then send the notification
-      await this.visitService.sendNotification(item.idVisit).toPromise();
+      await this.visitService.sendNotification(item.idVisit, item.idClient).toPromise();
 
       this.toaster.success('Notification sent successfully');
       

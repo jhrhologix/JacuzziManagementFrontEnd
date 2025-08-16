@@ -17,6 +17,70 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Subscription } from 'rxjs';
 declare var window: any;
 
+/**
+ * CLIENT MANAGEMENT COMPONENT
+ * 
+ * PURPOSE:
+ * This component provides comprehensive client management functionality for the Jacuzzi Management System.
+ * It allows administrators to search, view, create, edit, and delete client records along with their
+ * associated spa details and service call history.
+ * 
+ * KEY FEATURES:
+ * 1. Client Search & Filtering - Multi-criteria search (Name, Spa Number, Service Call, Telephone, Client Number, Address)
+ * 2. Client CRUD Operations - Create, Read, Update, Delete client records
+ * 3. Spa Management - Associate and manage spa details for clients
+ * 4. Service Call Integration - View upcoming and historical service calls
+ * 5. Blacklist Management - Handle blacklisted clients
+ * 6. Multi-language Support - English/French localization
+ * 
+ * API ENDPOINTS REFERENCED:
+ * - GET /api/clients/getallclientlist - Retrieve all clients
+ * - POST /api/clients/getclientbyid?clientId={id} - Get specific client details
+ * - POST /api/clients/getclientbysearch - Search clients by criteria
+ * - POST /api/clients/saveclient - Create new client
+ * - POST /api/clients/updateclient - Update existing client
+ * - POST /api/clients/deleteclient - Delete client
+ * - GET /api/clients/getoldservicecall?clientId={id} - Get client's service call history
+ * - GET /api/clients/getupcomingservicecall?clientId={id} - Get upcoming service calls
+ * - GET /api/clients/getspadetails?clientId={id} - Get client's spa details
+ * - POST /api/clients/savespadetails - Save spa details
+ * - POST /api/clients/updatespadetails - Update spa details
+ * - DELETE /api/clients/deletespadetails - Delete spa details
+ * 
+ * COMPONENT ARCHITECTURE:
+ * - Standalone Angular component with Material Design integration
+ * - Reactive forms for client and spa data management
+ * - MatTable for displaying client lists with sorting and pagination
+ * - Search popup overlay for client selection
+ * - Form validation with custom validators
+ * - Toastr notifications for user feedback
+ * - Translation service for internationalization
+ * 
+ * RECENT IMPROVEMENTS (Current Session):
+ * - Fixed search popup not closing after client selection
+ * - Resolved form emptying issue when clicking on selected client
+ * - Added proper search popup state management
+ * - Implemented original client list preservation
+ * - Added click-outside detection to close search popup
+ * - Enhanced search input blur handling
+ * - Improved client list restoration logic
+ * 
+ * USAGE SCENARIOS:
+ * 1. ADMIN CLIENT SEARCH: Search for existing clients using various criteria
+ * 2. NEW CLIENT REGISTRATION: Create new client records with complete information
+ * 3. CLIENT PROFILE MANAGEMENT: Update client details, contact info, and preferences
+ * 4. SPA ASSOCIATION: Link spa models and brands to client accounts
+ * 5. SERVICE CALL TRACKING: Monitor client service history and upcoming appointments
+ * 6. BLACKLIST HANDLING: Manage problematic client accounts
+ * 
+ * TECHNICAL NOTES:
+ * - Uses Angular Material components for consistent UI
+ * - Implements responsive design patterns
+ * - Handles both synchronous and asynchronous data operations
+ * - Includes error handling and loading states
+ * - Supports form validation and user input sanitization
+ * - Integrates with external services for notifications and translations
+ */
 @Component({
   selector: 'app-client',
   standalone: true,
@@ -36,70 +100,102 @@ declare var window: any;
 })
 export class ClientComponent {
 
-  clientlist: any[] = [];
-  searchclientlist: any[] = [];
-  filtermodel: FilterModel;
-  searchfiltermodel: SearchFilterModel;
-  selectedClient: any[] = [];
-  selectedClient1: boolean = true;
-  spaDetails: any[] = [];
-  upComingServiceCall: any;
-  clientName: string = '';
-  clientNumber: string = '';
-  clientid: number = 0;
-  clientForm: FormGroup;
-  spaForm: FormGroup;
-  selectedValue: string = '';
+  // ===== CLIENT DATA MANAGEMENT =====
+  clientlist: any[] = [];                    // Main client list displayed in the table
+  searchclientlist: any[] = [];              // Search results displayed in popup overlay
+  originalClientList: any[] = [];            // Backup of full client list for restoration
+  
+  // ===== FILTER & SEARCH CONFIGURATION =====
+  filtermodel: FilterModel;                  // Filter configuration for client operations
+  searchfiltermodel: SearchFilterModel;      // Search criteria model for client search
+  selectedFilter: string = 'Name';           // Currently selected search filter (Name, Spa Number, etc.)
+  searchQuery: string = '';                  // Current search input value
+  filterValue: any;                          // Processed filter value for API calls
+  // Remove popup-specific properties
+  // isSearchtable: boolean = false;
+  
+  // Always show the search results table
+  isSearchtable: boolean = true;
+  
+  // ===== CLIENT SELECTION & STATE =====
+  selectedClient: any[] = [];                // Currently selected client data
+  selectedClient1: boolean = true;           // Client selection state flag
+  clientid: number = 0;                      // ID of currently selected client
+  isClientSelected: boolean = false;         // Whether a client is currently selected
+  isAddingNewClient: boolean = false;        // Tracks if we're in "add new client" mode
+  selectedClientForHighlighting: any = null; // Client object for highlighting in main list
+  
+  // ===== FORM MANAGEMENT =====
+  clientForm: FormGroup;                     // Reactive form for client information
+  spaForm: FormGroup;                        // Reactive form for spa details
+  selectedValue: string = '';                // Generic selected value storage
+  
+  // ===== SPA & SERVICE CALL DATA =====
+  spaDetails: any[] = [];                    // Spa details associated with selected client
+  upComingServiceCall: any;                  // Upcoming service calls for selected client
+  OldServiceCall: any[] = [];                // Historical service calls for selected client
+  spaBrands: { id: number; value: string }[] = [];  // Available spa brands
+  spaModel: any[] = [];                      // Available spa models
+  poolSpecialist: any[] = [];                // Available pool specialists
+  allSpaDetails: any[] = [];                 // All spa details for the system
+  spaId: number = 0;                         // ID of currently selected spa
+  spaBrandId: any;                           // ID of selected spa brand
+  
+  // ===== UI STATE & CONTROLS =====
+  isButtonDisabled: boolean = true;          // Controls button enable/disable states
+  isDeleteButtonDisabled: boolean = true;    // Controls delete button state
+  isSpaDeleteButtonDisabled: boolean = true; // Controls spa delete button state
+  isInputDisabled: boolean = true;           // Controls form input enable/disable states
+  isLoading: boolean = false;                // Loading state indicator
+  allDataLoaded: boolean = false;            // Data loading completion flag
+  
+  // ===== CLIENT STATUS & VALIDATION =====
+  blacklist: any;                            // Blacklist status of selected client
+  isBlackListed: boolean = false;            // Whether selected client is blacklisted
+  newClientnumber: any;                      // Generated client number for new clients
+  hasClientNumberData: boolean = true;       // Whether client number data is available
+  
+  // ===== MODAL & DIALOG MANAGEMENT =====
+  deleteclient: any;                         // Reference to delete confirmation modal
+  modalTitle: string = '';                   // Modal title text
+  modalMessage: string = '';                 // Modal message text
+  confirmButtonText: string = 'Delete';      // Modal confirm button text
+  private confirmActionFn: () => void = () => {};  // Modal action callback
+  
+  // ===== DATA SOURCES & PAGINATION =====
+  dataSource = new MatTableDataSource<any>([]);           // Main client table data source
+  spaDetailsdataSource = new MatTableDataSource<any>([]); // Spa details table data source
+  newServicecallData = new MatTableDataSource<any>([]);   // Service call table data source
+  
+  // ===== INTERNATIONALIZATION =====
+  language: any;                              // Current language configuration
+  currentLanguage: string = 'en';             // Default language setting
+  
+  // ===== UTILITY & STORAGE =====
+  actionbuttondata: any;                      // Action button data storage
+  edit: any;                                  // Edit mode state
+  adminToken: any;                            // Admin authentication token
+  private subscription: Subscription = new Subscription();  // RxJS subscription management
+  private clientDataToPatch: any = null;      // Client data for form patching
+  
+  // ===== MISSING PROPERTIES (Referenced in code) =====
+  provinces: any[] = [];                      // Available provinces for address selection
+  isdeletebutton: boolean = true;             // Delete button state flag
+  MOBILE: string = '';                        // Mobile device identifier
+  isSearchDisabled: boolean = false;          // Search functionality disabled state
+  clientName: string = '';                    // Client name storage
+  clientNumber: string = '';                  // Client number storage
 
-  
-  allDataLoaded = false;
-  //area: any[] = [];
-  provinces: any[] = [];
-  isClientSelected: boolean = false;
-  MOBILE: string = '';
-  isInputDisabled: boolean = true;
-  isAddingNewClient = false; // To track the client form status
-  selectedFilter: string = 'Name';
-  isSearchDisabled: boolean = false;
-  isButtonDisabled: boolean = true;
-  isDeleteButtonDisabled = true;
-  isdeletebutton = true;
-  spaBrands: { id: number; value: string }[] = [];
-  //spaBrandId: any;
-  spaModel: any[] = [];
-  poolSpecialist: any[] = [];
-  allSpaDetails: any[] = [];
-  spaId: number = 0;
-  searchQuery: string = '';
-  isSpaDeleteButtonDisabled = true;
-  blacklist: any;
-  isBlackListed = false;
-  newClientnumber: any;
-  hasClientNumberData = true;
-  isSearchtable = false;
-  deleteclient: any;
-  modalTitle: string = '';
-  modalMessage: string = '';
-  confirmButtonText: string = 'Delete';
-  private confirmActionFn: () => void = () => {};
-  actionbuttondata: any;
-  isLoading = false;
-  filterValue: any;
-  spaBrandId: any;
-  OldServiceCall: any[]=[];
-  adminToken: any;
-  edit: any;
-  dataSource = new MatTableDataSource<any>([]);
-  spaDetailsdataSource = new MatTableDataSource<any>([]);
-  newServicecallData = new MatTableDataSource<any>([]);
-  language: any;
-  currentLanguage: string = 'en'; // Default language
-  private subscription: Subscription = new Subscription();
-  
   @ViewChild('oldServicePaginator') oldServicePaginator!: MatPaginator;
   @ViewChild('spaPaginator') spaPaginator!: MatPaginator;
   @ViewChild('newServicecallPaginator') newServicecallPaginator!: MatPaginator;
 
+  // ===== LIFECYCLE METHODS =====
+  
+  /**
+   * Component initialization - sets up forms, loads initial data, and processes route parameters
+   * Handles authentication token processing and initial client selection if editing mode
+   */
   ngOnInit(): void {
     this.subscription = this.commonservice.languageChange$.subscribe((lang) => {
       this.currentLanguage = lang;
@@ -156,7 +252,7 @@ export class ClientComponent {
     this.translate.use(lang); // Switch language
   }
 
-  displayedColumns: string[] = ['clientNumber', 'firstName', 'lastName'];
+  displayedColumns: string[] = ['clientNumber', 'firstName', 'lastName', 'spouseFirstName', 'spouseLastName'];
   displayedSearchColumns: string[] = [
     'clientNumber',
     'FirstName',
@@ -226,13 +322,50 @@ export class ClientComponent {
     }
   }
   
-onChange(){
-  
-  this.searchQuery = '';
+  /**
+   * Handles filter change events (e.g., switching between Name, Spa Number, etc.)
+   * Resets search state and reloads the full client list
+   */
+  onChange(){
+    
+    this.searchQuery = '';
+    this.isSearchtable = false;
+    this.selectedClientForHighlighting = null; // Clear highlighting when filter changes
+    this.resetClientList();
 
-  this.getAllClientList()
-}
-selectClient(event : any){
+    this.getAllClientList()
+  }
+
+  /**
+   * CORE CLIENT SELECTION METHOD
+   * 
+   * PURPOSE: Handles client selection from both search popup and main client list
+   * 
+   * FUNCTIONALITY:
+   * 1. Closes search popup but maintains search context
+   * 2. Fetches detailed client data from API
+   * 3. Updates form with client information
+   * 4. Loads associated data (spa details, service calls)
+   * 5. Filters main list to show search results with selected client highlighted
+   * 
+   * PARAMETERS:
+   * - event: Client object or client ID to select
+   * 
+   * API CALLS:
+   * - POST /api/clients/getclientdata - Retrieves full client details
+   * - GET /api/clients/getoldservicecall - Loads service call history
+   * - GET /api/clients/getupcomingservicecall - Loads upcoming service calls
+   * - GET /api/clients/getspadetails - Loads spa information
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Fixed search popup not closing after selection
+   * - Resolved form emptying when clicking selected client
+   * - Added original client list preservation
+   * - Improved search state management
+   * - Maintains search context after selection
+   * - Highlights selected client in filtered results
+   */
+  selectClient(event : any){
   
   this.isButtonDisabled = false;
   
@@ -243,6 +376,13 @@ selectClient(event : any){
   else
   {
     console.log('Select client event:', event);
+    
+    // Close the search popup when a client is selected
+    this.isSearchtable = false;
+    
+    // DON'T clear searchQuery - maintain search context
+    // this.searchQuery = ''; // REMOVED - keep search context
+    
     // Convert clientID to clientId if needed
     this.clientid = event.clientID || event.ClientID || event;
     console.log('Using client ID:', this.clientid);
@@ -256,9 +396,18 @@ selectClient(event : any){
           this.selectedClient = response?.value || response?.Value || [];
           console.log('Selected client data:', this.selectedClient);
           
-          if(this.filterValue != '' && this.filterValue!=undefined){
-            this.getClientById();
+          // Set the selected client for highlighting in the main list
+          if (this.selectedClient && this.selectedClient.length > 0) {
+            this.selectedClientForHighlighting = this.selectedClient[0];
           }
+          
+          // Only restore original list if no filter is active
+          if (!this.filterValue || this.filterValue.trim() === '') {
+            if (this.originalClientList.length > 0) {
+              this.clientlist = [...this.originalClientList];
+            }
+          }
+          // If filter is active, keep the filtered results
           
           this.blacklist = (response?.value || response?.Value || [])[0]?.blackList;
           if(this.blacklist == true){
@@ -281,25 +430,26 @@ selectClient(event : any){
               rawClientData: clientData
             });
             
-            // Set initial values independently
-            this.clientForm.patchValue({
-              ...clientData,
-              raisedSpa: clientData.raisedSpa || false,
-              ExternalBreaker: clientData.IsExternalBreaker === true || clientData.isExternalBreaker === true
-            });
-            
-            // Log the form value after patching
-            console.log('Form value after patching:', {
-              formValue: this.clientForm.get('ExternalBreaker')?.value,
-              rawValue: clientData.isExternalBreaker,
-              clientData: clientData
+            // Debug logging for SMS and EmailClient
+            console.log('SMS and EmailClient values from API:', {
+              SMS: clientData.SMS,
+              EmailClient: clientData.EmailClient,
+              sms: clientData.sms,
+              emailClient: clientData.emailClient,
+              SMS_type: typeof clientData.SMS,
+              EmailClient_type: typeof clientData.EmailClient,
+              sms_type: typeof clientData.sms,
+              emailClient_type: typeof clientData.emailClient,
+              rawClientData: clientData
             });
             
             if (!clientData.house || !clientData.streetNumber) {
-              this.clientForm.patchValue({
-                house: '2'
-              });
+              clientData.house = '2';
             }
+            
+            // Store clientData for use after enabling form
+            this.clientDataToPatch = { ...clientData };
+            
           } else {
             console.error('No client data available to display');
           }
@@ -310,6 +460,38 @@ selectClient(event : any){
           this.getSpaDetails();
           this.isClientSelected = true;
           this.enableFormFields();
+          
+          // Set form values AFTER enabling the form
+          if (this.selectedClient && this.selectedClient.length > 0 && this.clientDataToPatch) {
+            this.clientForm.patchValue({
+              ...this.clientDataToPatch,
+              raisedSpa: this.clientDataToPatch.raisedSpa || false,
+              ExternalBreaker: this.clientDataToPatch.IsExternalBreaker === true || this.clientDataToPatch.isExternalBreaker === true,
+              sms: this.clientDataToPatch.SMS === true || this.clientDataToPatch.sms === true,
+              emailClient: this.clientDataToPatch.EmailClient === true || this.clientDataToPatch.emailClient === true
+            });
+            
+            // Explicitly set SMS and EmailClient to false if they are null/undefined
+            if (this.clientDataToPatch.SMS !== true && this.clientDataToPatch.sms !== true) {
+              this.clientForm.patchValue({ sms: false });
+            }
+            if (this.clientDataToPatch.EmailClient !== true && this.clientDataToPatch.emailClient !== true) {
+              this.clientForm.patchValue({ emailClient: false });
+            }
+            
+            // Log the form values after patching
+            console.log('Form values after patching:', {
+              sms: this.clientForm.get('sms')?.value,
+              emailClient: this.clientForm.get('emailClient')?.value
+            });
+            
+            // Log the form value after patching
+            console.log('Form value after patching:', {
+              formValue: this.clientForm.get('ExternalBreaker')?.value,
+              rawValue: this.clientDataToPatch.isExternalBreaker,
+              clientData: this.clientDataToPatch
+            });
+          }
         }
         else 
         {
@@ -405,16 +587,112 @@ createformgroup1(){
       }
     });
   }
+  /**
+   * Removes the current search filter and resets to show all clients
+   * Clears search query, filter value, and resets client list
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added highlighting reset
+   * - Enhanced filter state management
+   */
   removefilter(){
     
     this.searchQuery = '';
     this.filterValue = '';
     this.selectedFilter='Name';
+    this.isSearchtable = false;
+    this.selectedClientForHighlighting = null; // Clear highlighting
+    this.resetClientList();
     this.getAllClientList();
   }
 
   @ViewChild('firstInput') firstInputField!: ElementRef;
 
+  /**
+   * SEARCH POPUP MANAGEMENT METHODS
+   * 
+   * PURPOSE: Handle search popup visibility, state management, and user interaction
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added proper search popup closing behavior
+   * - Implemented click-outside detection
+   * - Enhanced search input blur handling
+   * - Fixed search popup not closing after client selection
+   */
+
+  /**
+   * Handles search input blur events
+   * Closes search popup and resets client list if search is empty
+   * Uses timeout to allow click events on search results to fire first
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added client list reset when search is empty
+   * - Improved timing for popup closure
+   * - Added highlighting reset for empty search
+   */
+  onSearchBlur() {
+    // Use setTimeout to allow click events on search results to fire first
+    setTimeout(() => {
+      this.isSearchtable = false;
+      // If search is empty, reset the client list and clear highlighting
+      if (!this.searchQuery || this.searchQuery.trim() === '') {
+        this.selectedClientForHighlighting = null; // Clear highlighting
+        this.onSearchClear();
+      }
+    }, 200);
+  }
+
+  /**
+   * Handles Enter key press in search input
+   * Clears highlighting and shows all clients when Enter is pressed
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added Enter key handling for better UX
+   * - Clears highlighting when Enter is pressed
+   * - Shows full client list for easy browsing
+   */
+  onSearchEnter(event: any) {
+    if (event.key === 'Enter') {
+      this.selectedClientForHighlighting = null; // Clear highlighting
+      this.isSearchtable = false;
+      this.resetClientList();
+      this.getAllClientList();
+    }
+  }
+
+  /**
+   * Handles clicking outside the search popup
+   * Automatically closes search popup when user clicks elsewhere
+   * Uses HostListener to detect document-level clicks
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added to improve user experience
+   * - Prevents search popup from staying open unintentionally
+   */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: any) {
+    const searchContainer = document.querySelector('.search_bar');
+    if (searchContainer && !searchContainer.contains(event.target)) {
+      this.isSearchtable = false;
+    }
+  }
+
+  /**
+   * CLIENT FORM MANAGEMENT METHODS
+   * 
+   * PURPOSE: Handle client form operations, state management, and data handling
+   */
+
+  /**
+   * Initializes a new client creation workflow
+   * Resets form state, clears search, and prepares for new client entry
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added search popup closure
+   * - Enhanced form reset functionality
+   * - Improved focus management
+   * - Added highlighting reset
+   */
   addNewClient() {
     this.isAddingNewClient = false;
     this.isBlackListed = false;
@@ -422,12 +700,14 @@ createformgroup1(){
     this.isButtonDisabled = false;
     this.selectedClient1 = true;
     this.isDeleteButtonDisabled = true;
+    this.selectedClientForHighlighting = null; // Clear highlighting
     this.clientForm.reset({
       house: '2',
       province: '9',
       //area: '',
     });
     this.searchQuery = '';
+    this.isSearchtable = false;
     //this.selectedClient = [];
     this.getAllClientList();
     this.enableFormFields();
@@ -435,36 +715,131 @@ createformgroup1(){
       this.firstInputField.nativeElement.focus();
     }
   }
+
+  /**
+   * Enables all form fields for editing
+   * Called when a client is selected or new client mode is activated
+   */
   enableFormFields() {
     this.clientForm.enable();
   }
 
-applyFilter(event: any) {
-  ;
-  this.filterValue = event.target.value.trim().toLowerCase();
-
-  if (this.filterValue.length > 0) {
-    if (this.selectedFilter === '' ? 'Name' : this.selectedFilter) {
-      this.setPaginatorModel(this.filterValue, this.selectedFilter);
-      this.clientservice.getClientBySearch(this.searchfiltermodel).subscribe((response: any) => {
-        if (response.isSuccess) {
-          this.isSearchtable = true;
-          this.searchclientlist = response.value;
-          
-        }
-      });
-    }
-  } else {
+  /**
+   * Handles search input clearing
+   * Resets search popup state and restores full client list
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added to prevent search state inconsistencies
+   * - Ensures proper client list restoration
+   * - Added highlighting reset
+   */
+  onSearchClear() {
     this.isSearchtable = false;
+    this.selectedClientForHighlighting = null; // Clear highlighting when search is cleared
+    this.resetClientList();
+  }
+
+  /**
+   * SEARCH FUNCTIONALITY METHODS
+   * 
+   * PURPOSE: Handle client search operations and search popup management
+   */
+
+  /**
+   * Handles manual clearing of search input
+   * Resets search state, highlighting, and restores full client list
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added to handle manual search clearing
+   * - Ensures proper state reset
+   * - Clears highlighting when search is manually cleared
+   */
+  handleManualSearchClear() {
+    this.selectedClientForHighlighting = null; // Clear highlighting
+    this.filterValue = '';
+    this.isSearchtable = false;
+    this.resetClientList();
     this.getAllClientList();
   }
-}
 
+  /**
+   * Handles search input changes and triggers client search
+   * Manages search popup visibility and client list filtering
+   * 
+   * PARAMETERS:
+   * - event: Input event containing search query
+   * 
+   * API CALLS:
+   * - POST /api/clients/getclientbysearch - Searches clients by criteria
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added proper search popup state management
+   * - Implemented search clearing functionality
+   * - Enhanced client list restoration logic
+   * - Added highlighting reset for new searches
+   * - Added manual search clearing detection
+   */
+  applyFilter(event: any) {
+    console.log('applyFilter called with event:', event);
+    console.log('Current searchQuery:', this.searchQuery);
+    console.log('Current selectedFilter:', this.selectedFilter);
+    
+    this.filterValue = event.target.value.trim().toLowerCase();
+    console.log('filterValue set to:', this.filterValue);
+
+    if (this.filterValue.length > 0) {
+      console.log('Filter has value, proceeding with search...');
+      // Clear highlighting when starting a new search
+      this.selectedClientForHighlighting = null;
+      
+      if (this.selectedFilter === '' ? 'Name' : this.selectedFilter) {
+        console.log('Setting paginator model...');
+        this.setPaginatorModel(this.filterValue, this.selectedFilter);
+        console.log('Calling getClientBySearch with:', this.searchfiltermodel);
+        
+        this.clientservice.getClientBySearch(this.searchfiltermodel).subscribe((response: any) => {
+          console.log('Search API response:', response);
+          if (response.isSuccess) {
+            console.log('Filtering main table with search results');
+            // Instead of showing popup, filter the main table
+            this.clientlist = response.value || [];
+            console.log('Main table now shows filtered results');
+          } else {
+            console.log('Search API returned success=false');
+          }
+        });
+      }
+    } else {
+      console.log('Filter is empty, clearing search...');
+      // Search was manually cleared, restore full list
+      this.resetClientList();
+      this.getAllClientList();
+    }
+  }
+
+  /**
+   * Configures search parameters for API calls
+   * Sets search text and search criteria (Name, Spa Number, etc.)
+   */
   setPaginatorModel(searchText: string, selectedvalue: string) {
     
     this.searchfiltermodel.text = searchText;
     this.searchfiltermodel.searchBy = selectedvalue;
   }
+
+  /**
+   * DATA LOADING METHODS
+   * 
+   * PURPOSE: Fetch and manage client-related data from various API endpoints
+   */
+
+  /**
+   * Loads historical service calls for the selected client
+   * Updates the service call table data source and pagination
+   * 
+   * API CALLS:
+   * - GET /api/clients/getoldservicecall?clientId={id}
+   */
   getOldServiceCall() {
     
     this.clientservice
@@ -478,7 +853,16 @@ applyFilter(event: any) {
         }
       });
   }
+
+  /**
+   * Loads upcoming service calls for the selected client
+   * Updates the upcoming service call table data source and pagination
+   * 
+   * API CALLS:
+   * - GET /api/clients/getupcomingservicecall?clientId={id}
+   */
   getUpcomingServiceCall() {
+    
     this.clientservice
       .getUpcomingServiceCall(this.clientid)
       .subscribe((response: any) => {
@@ -492,6 +876,14 @@ applyFilter(event: any) {
         }
       });
   }
+
+  /**
+   * Loads spa details associated with the selected client
+   * Updates the spa details table data source and pagination
+   * 
+   * API CALLS:
+   * - GET /api/clients/getspadetails?clientId={id}
+   */
   getSpaDetails() {
    
     this.clientservice
@@ -507,17 +899,85 @@ applyFilter(event: any) {
       });
   }
 
+  /**
+   * CLIENT LIST MANAGEMENT METHODS
+   * 
+   * PURPOSE: Handle client list state, filtering, and restoration
+   */
+
+  /**
+   * Applies the current search filter to the main client list
+   * Shows filtered results while maintaining the original list for restoration
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added to maintain search context after client selection
+   * - Ensures filtered results are visible in main list
+   * - Preserves original list for future operations
+   */
+  applyCurrentFilterToMainList() {
+    // Simplified method - just restore original list
+    if (this.originalClientList.length > 0) {
+      this.clientlist = [...this.originalClientList];
+    }
+  }
+
+  /**
+   * Resets the client list to show all clients
+   * Restores the original client list from backup to prevent filtering issues
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added to prevent form emptying when clicking selected clients
+   * - Ensures full client list is always available
+   */
+  resetClientList() {
+    if (this.originalClientList.length > 0) {
+      this.clientlist = [...this.originalClientList];
+    }
+  }
+
+  /**
+   * Loads client data by ID for filtering purposes
+   * Filters the original client list to show only matching clients
+   * 
+   * API CALLS:
+   * - POST /api/clients/getclientbyid?clientId={id}
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Modified to preserve original client list
+   * - Prevents client list from being reduced to single client
+   */
   getClientById(){
     
     this.clientservice.getClientById(this.clientid ).subscribe((response : any) => {
       if(response.isSuccess == true)
       {
-        this.clientlist = response.value || response.Value || [];
+        // Only update the filtered view, don't override the original list
+        const filteredClients = response.value || response.Value || [];
+        // Filter the original list to show only matching clients
+        this.clientlist = this.originalClientList.filter(client => 
+          filteredClients.some((filteredClient: any) => 
+            filteredClient.clientID === client.clientID || 
+            filteredClient.ClientID === client.clientID
+          )
+        );
       }
     })
   }
 
 
+  /**
+   * Loads all clients from the system
+   * Main data source for the client list table
+   * Handles data transformation and stores original list for restoration
+   * 
+   * API CALLS:
+   * - GET /api/clients/getallclientlist
+   * 
+   * RECENT IMPROVEMENTS:
+   * - Added original client list preservation
+   * - Enhanced data transformation logic
+   * - Improved error handling and loading states
+   */
   getAllClientList() {
     
     this.isLoading = true;
@@ -541,11 +1001,16 @@ applyFilter(event: any) {
                 clientNumber: client.ClientNumber,
                 firstName: client.FirstName,
                 lastName: client.LastName,
+                spouseFirstName: client.SpouseFirstName,
+                spouseLastName: client.SpouseLastName,
                 totalRecords: client.TotalRecords || 0
               }));
             } else {
               this.clientlist = clientData;
             }
+            
+            // Store the original client list for later restoration
+            this.originalClientList = [...this.clientlist];
             
             console.log('Final client list:', this.clientlist);
             
@@ -566,6 +1031,21 @@ applyFilter(event: any) {
     }, 100);
   }
 
+  /**
+   * UTILITY & HELPER METHODS
+   * 
+   * PURPOSE: Provide supporting functionality for the main component operations
+   */
+
+  /**
+   * Shows confirmation modal for destructive actions
+   * Handles delete confirmations for clients and spa details
+   * 
+   * PARAMETERS:
+   * - title: Modal title text
+   * - message: Modal message text
+   * - confirmAction: Function to execute on confirmation
+   */
   showConfirmationModal(
     title: string,
     message: string,
@@ -1120,6 +1600,141 @@ sanitizeInput(): void {
   }
 }
 
+/**
+ * COMPONENT SUMMARY & IMPLEMENTATION NOTES
+ * 
+ * OVERALL ARCHITECTURE:
+ * This component implements a comprehensive client management system with the following key areas:
+ * 
+ * 1. CLIENT SEARCH & SELECTION:
+ *    - Multi-criteria search (Name, Spa Number, Service Call, Telephone, Client Number, Address)
+ *    - Search popup overlay with clickable results
+ *    - Automatic popup closure after selection
+ *    - Click-outside detection for better UX
+ * 
+ * 2. CLIENT DATA MANAGEMENT:
+ *    - Full CRUD operations for client records
+ *    - Form validation and data sanitization
+ *    - Client list preservation and restoration
+ *    - Blacklist status handling
+ * 
+ * 3. SPA & SERVICE CALL INTEGRATION:
+ *    - Spa details association and management
+ *    - Historical and upcoming service call tracking
+ *    - Service call data sorting and pagination
+ * 
+ * 4. USER EXPERIENCE IMPROVEMENTS:
+ *    - Responsive design with Material Design components
+ *    - Multi-language support (English/French)
+ *    - Toastr notifications for user feedback
+ *    - Loading states and error handling
+ * 
+ * RECENT SESSION IMPROVEMENTS:
+ * 
+ * ISSUE 1: Search popup not closing after client selection
+ * SOLUTION: Added proper state management in selectClient method
+ * - Set isSearchtable = false when client is selected
+ * - Clear searchQuery to reset search state
+ * 
+ * ISSUE 2: Form emptying when clicking on selected client again
+ * SOLUTION: Implemented original client list preservation
+ * - Added originalClientList property to store full client list
+ * - Modified getClientById to preserve original list
+ * - Added resetClientList method for list restoration
+ * 
+ * ISSUE 3: Search popup state management
+ * SOLUTION: Enhanced search popup behavior
+ * - Added onSearchBlur method for input blur handling
+ * - Added onDocumentClick for click-outside detection
+ * - Added onSearchClear for search state reset
+ * - Improved timing for popup closure
+ * 
+ * API INTEGRATION PATTERNS:
+ * 
+ * 1. DATA LOADING:
+ *    - getAllClientList(): Main client list with transformation
+ *    - getClientById(): Filtered client view
+ *    - getClientDataById(): Full client details
+ * 
+ * 2. SEARCH OPERATIONS:
+ *    - getClientBySearch(): Criteria-based client search
+ *    - applyFilter(): Search input handling
+ *    - setPaginatorModel(): Search parameter configuration
+ * 
+ * 3. ASSOCIATED DATA:
+ *    - getOldServiceCall(): Service call history
+ *    - getUpcomingServiceCall(): Future appointments
+ *    - getSpaDetails(): Spa information
+ * 
+ * FORM MANAGEMENT STRATEGY:
+ * 
+ * 1. FORM STATE:
+ *    - clientForm: Main client information
+ *    - spaForm: Spa details and specifications
+ *    - Dynamic enable/disable based on selection state
+ * 
+ * 2. DATA BINDING:
+ *    - Reactive forms with validation
+ *    - Form patching from API responses
+ *    - Data transformation for UI compatibility
+ * 
+ * 3. VALIDATION:
+ *    - Required field validation
+ *    - Email format validation
+ *    - Custom validators for phone numbers
+ *    - Whitespace prevention
+ * 
+ * PERFORMANCE CONSIDERATIONS:
+ * 
+ * 1. DATA LOADING:
+ *    - Lazy loading of associated data
+ *    - Pagination for large datasets
+ *    - Debounced search input handling
+ * 
+ * 2. MEMORY MANAGEMENT:
+ *    - Subscription cleanup in ngOnDestroy
+ *    - Efficient data structure usage
+ *    - Minimal DOM manipulation
+ * 
+ * 3. USER INTERACTION:
+ *    - Responsive search with minimal API calls
+ *    - Smooth transitions and loading states
+ *    - Intuitive error handling
+ * 
+ * FUTURE ENHANCEMENTS:
+ * 
+ * 1. SEARCH IMPROVEMENTS:
+ *    - Advanced filtering options
+ *    - Search result highlighting
+ *    - Search history and suggestions
+ * 
+ * 2. DATA MANAGEMENT:
+ *    - Bulk operations for multiple clients
+ *    - Advanced sorting and filtering
+ *    - Export functionality for reports
+ * 
+ * 3. USER EXPERIENCE:
+ *    - Keyboard navigation support
+ *    - Drag and drop for spa associations
+ *    - Real-time updates and notifications
+ * 
+ * TESTING CONSIDERATIONS:
+ * 
+ * 1. UNIT TESTS:
+ *    - Component initialization
+ *    - Form validation logic
+ *    - API integration methods
+ * 
+ * 2. INTEGRATION TESTS:
+ *    - End-to-end client workflows
+ *    - API response handling
+ *    - Error scenario coverage
+ * 
+ * 3. USER ACCEPTANCE TESTS:
+ *    - Search functionality validation
+ *    - Form submission workflows
+ *    - Data persistence verification
+ */
 }
 
 

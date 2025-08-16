@@ -1,14 +1,40 @@
 <div class="container">
   <h2>Send Messages</h2>
   
+  <!-- Client Selection -->
+  <div class="client-selection" *ngIf="clients.length > 0">
+    <h3>Select Clients</h3>
+    <div class="client-list">
+      <div class="client-item" *ngFor="let client of clients">
+        <mat-checkbox 
+          [(ngModel)]="client.selectrow"
+          [checked]="client.selectrow">
+          {{ client.firstName }} {{ client.lastName }} 
+          ({{ client.clientNumber }}) - 
+          SMS: {{ client.sms ? 'Yes' : 'No' }}, 
+          Email: {{ client.emailClient ? 'Yes' : 'No' }}
+        </mat-checkbox>
+      </div>
+    </div>
+  </div>
+
   <div class="message-form">
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Message</mat-label>
-      <textarea matInput rows="4" placeholder="Enter your message here..."></textarea>
+      <textarea 
+        matInput 
+        rows="4" 
+        placeholder="Enter your message here..."
+        [(ngModel)]="message">
+      </textarea>
     </mat-form-field>
 
     <div class="actions">
-      <button mat-raised-button color="primary" (click)="sendSMS(getSelectedMobileNumbers(), message)">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="sendSMS(getSelectedMobileNumbers(), message)"
+        [disabled]="!message.trim() || getSelectedMobileNumbers().length === 0">
         Send SMS
       </button>
     </div>

@@ -1,1 +1,6 @@
-export const environment = { production: false, apiUrl: 'https://localhost:7159', pageSizeList: [5, 10, 25, 50], defaultPageSize: 50 };
+export const environment = {
+     production: false, apiUrl: 'https://localhost:7159', 
+     pageSizeList: [5, 10, 25, 50], 
+     defaultPageSize: 50 
+    
+    };

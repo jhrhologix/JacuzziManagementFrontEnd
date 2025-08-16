@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { JsonModel } from '../../../shared/models/json.model';
-import { VisitReport } from '../../../shared/models/visit-report.model';
+import { JsonModel } from '../../../shared/Models/json.model';
+import { VisitReport } from '../../../shared/Models/visit-report.model';
 import { map, switchMap, tap } from 'rxjs/operators';
 
 @Injectable({
@@ -22,10 +22,16 @@ export class VisitService {
     });
   }
 
-  sendNotification(visitId: number): Observable<JsonModel<VisitReport>> {
-    console.log('Getting client details for visitId:', visitId);
-    // First get client details using the correct endpoint
-    return this.http.get<any>(`${environment.apiUrl}/api/Technician/GetAllTechnicianDetailTechnicianPageByID?visitId=${visitId}`).pipe(
+  sendNotification(visitId: number, clientId: number): Observable<JsonModel<VisitReport>> {
+    console.log('Getting client details for visitId:', visitId, 'clientId:', clientId);
+    
+    if (!clientId) {
+      console.error('No client ID provided');
+      throw new Error('Client ID is required');
+    }
+    
+    // Get full client details using the client ID
+    return this.http.post<any>(`${environment.apiUrl}/api/clients/getclientbyid?clientId=${clientId}`, null).pipe(
       tap(response => {
         console.log('Client details response:', response);
       }),
@@ -37,16 +43,38 @@ export class VisitService {
         
         const clientData = clientResponse.value[0];
         console.log('Client data:', clientData);
+        console.log('Full client data structure:', JSON.stringify(clientData, null, 2));
         
-        // Use the same structure as the working service call notification
+        console.log('Client communication preferences:', {
+          SMS: clientData.SMS,
+          sms: clientData.sms,
+          EmailClient: clientData.EmailClient,
+          emailClient: clientData.emailClient,
+          email: clientData.email,
+          Email: clientData.Email,
+          primaryEmail: clientData.primaryEmail,
+          primaryemail: clientData.primaryemail,  // Check lowercase version
+          PrimaryEmail: clientData.PrimaryEmail,
+          mobileNumber: clientData.mobileNumber,
+          MobileNumber: clientData.MobileNumber,
+          home: clientData.home,
+          Home: clientData.Home
+        });
+        
+        // Use the email service endpoint that accepts client preferences directly
         const notificationData = {
-          visitId: visitId,
-          emailTemplateId: 13  // Using the same template ID as the working notification
+          masterEmailTemplateId: 13,  // Email template ID
+          masterSMSTemplateId: 13,    // SMS template ID (using same template for now)
+          recipients: [clientData.primaryEmail || ''],  // List of email addresses
+          visitDate: new Date().toISOString().split('T')[0],  // Today's date
+          sms: [clientData.sms || false],  // List of SMS preferences
+          emailClient: [clientData.emailClient || false],  // List of email preferences
+          mobileNumber: [clientData.streetNumber || clientData.home || '']  // List of mobile numbers
         };
         console.log('Sending notification with data:', notificationData);
         
-        // Use the same endpoint as the working service call notification
-        return this.http.post<any>(`${environment.apiUrl}/api/ServiceCall/SendEmail`, notificationData).pipe(
+        // Use the email service endpoint that accepts client preferences directly
+        return this.http.post<any>(`${environment.apiUrl}/api/EmailSechedule/SendEmail`, notificationData).pipe(
           tap(response => {
             console.log('Notification response:', response);
             if (!response || !response.isSuccess) {
