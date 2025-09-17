@@ -109,41 +109,48 @@ export class ImageApiService {
   }
 
   /**
-   * Get all images for a service call by checking direct URLs
-   * Uses the known URL pattern: service-calls/service-calls/servicecall/filename
+   * Get all images for a service call using Cloudinary Admin API with Basic Auth
    */
   async getImagesForServiceCall(serviceCallNumber: string): Promise<ImageUploadResult[]> {
-    console.log(`Looking for images for service call: ${serviceCallNumber}`);
-    
-    // Since we can't search Cloudinary from browser, we'll check if we have any 
-    // known images in localStorage from current or previous sessions
-    const storageKey = `cloudinary_images_${serviceCallNumber}`;
-    const storedImages = localStorage.getItem(storageKey);
-    
-    if (storedImages) {
-      const images = JSON.parse(storedImages);
-      console.log(`Found ${images.length} images in localStorage for ${serviceCallNumber}`);
+    try {
+      console.log(`🔍 Searching for images for service call: ${serviceCallNumber}`);
       
-      // Verify each image still exists in Cloudinary using the correct URL pattern
-      const validImages: ImageUploadResult[] = [];
-      for (const image of images) {
-        // Construct URL with the double service-calls pattern
-        const checkUrl = `https://res.cloudinary.com/${environment.cloudinary.cloudName}/image/upload/w_50,h_50,c_fill,q_auto,f_auto/${image.publicId}`;
-        
-        try {
-          const response = await fetch(checkUrl, { method: 'HEAD' });
-          if (response.ok) {
-            validImages.push(image);
+      // Use Basic HTTP Authentication (this works!)
+      const credentials = btoa(`${environment.cloudinary.apiKey}:${environment.cloudinary.apiSecret}`);
+      
+      // Search for images with the service call number in the public_id
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${environment.cloudinary.cloudName}/resources/image?max_results=100&prefix=service-calls/${serviceCallNumber}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${credentials}`,
+            'Content-Type': 'application/json'
           }
-        } catch (error) {
-          console.log(`Image ${image.publicId} no longer accessible`);
         }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Found ${data.resources?.length || 0} existing images for ${serviceCallNumber}`);
+        
+        if (data.resources && data.resources.length > 0) {
+          return data.resources.map((resource: any) => ({
+            publicId: resource.public_id,
+            url: resource.secure_url,
+            thumbnailUrl: this.getThumbnailUrl(resource.public_id),
+            uploadedBy: this.extractUploadedByFromPublicId(resource.public_id)
+          }));
+        }
+      } else {
+        console.warn(`Failed to fetch images for ${serviceCallNumber}:`, response.status);
+        const errorText = await response.text();
+        console.warn('Error details:', errorText);
       }
-      
-      return validImages;
+    } catch (error) {
+      console.error('Error fetching images from Cloudinary:', error);
     }
     
-    console.log(`No stored images found for ${serviceCallNumber}`);
     return [];
   }
 

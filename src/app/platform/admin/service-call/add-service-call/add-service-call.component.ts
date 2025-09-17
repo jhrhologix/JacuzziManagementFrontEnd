@@ -1255,12 +1255,9 @@ async onFileChange(event: any): Promise<void> {
       const currentUsername = localStorage.getItem('username') || 'admin'; // Replace with your auth logic
       
       // Upload to Cloudinary immediately
-      const result = await this.imageApiService.uploadImage(file, serviceCallNumber, currentUsername, 'admin');
-      
-      // Save to localStorage so images persist on page reload
-      this.imageApiService.saveImageToStorage(serviceCallNumber, result);
-      
-      // Add to display array
+        const result = await this.imageApiService.uploadImage(file, serviceCallNumber, currentUsername, 'admin');
+        
+        // Add to display array
       this.cloudinaryImages.push({
         publicId: result.publicId,
         url: result.thumbnailUrl,
