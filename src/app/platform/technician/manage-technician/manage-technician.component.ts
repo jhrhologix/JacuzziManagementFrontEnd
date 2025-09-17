@@ -891,7 +891,16 @@ removeImage(): void {
   canDeleteImage(publicId: string): boolean {
     const currentUsername = localStorage.getItem('username') || 'technician';
     const isAdmin = false; // Technician page - restricted permissions
-    return this.imageApiService.canDeleteImage(publicId, currentUsername, isAdmin);
+    
+    // Debug logging
+    console.log(`🔍 Technician: Checking delete permission for image: ${publicId}`);
+    console.log(`👤 Current username: ${currentUsername}`);
+    console.log(`🔑 Is admin: ${isAdmin}`);
+    
+    const canDelete = this.imageApiService.canDeleteImage(publicId, currentUsername, isAdmin);
+    console.log(`✅ Can delete: ${canDelete}`);
+    
+    return canDelete;
   }
 
 loadImages(id: number): void {

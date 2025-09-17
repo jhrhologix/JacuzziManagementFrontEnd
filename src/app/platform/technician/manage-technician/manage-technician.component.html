@@ -98,8 +98,8 @@
        <div class="row mb-3 custom-line-scroll">    
          <div class="col-md-2 col-sm-4 mb-3" *ngFor="let imageData of cloudinaryImages; let i = index">
            <br />
-           <!-- Thumbnail Image Container -->
-           <div class="position-relative d-inline-block">
+           <!-- Thumbnail Image Container with proper overflow handling -->
+           <div class="position-relative d-inline-block" style="overflow: visible;">
              <img 
                [src]="imageData.url" 
                alt="Service Call Image" 
@@ -107,13 +107,13 @@
                data-bs-toggle="modal" 
                data-bs-target="#image_servicecall" 
                (click)="selectedImageUrl = imageData.url"
-               style="cursor: pointer; border-radius: 8px;"
+               style="cursor: pointer; border-radius: 8px; max-width: 100%;"
              />
-             <!-- Delete Button (only show for own images) -->
+             <!-- Delete Button (positioned inside the image bounds) -->
              <button 
                type="button" 
-               class="btn btn-danger btn-sm position-absolute top-0 end-0 translate-middle"
-               style="width: 20px; height: 20px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 1;"
+               class="btn btn-danger btn-sm position-absolute"
+               style="top: 5px; right: 5px; width: 24px; height: 24px; padding: 0; border-radius: 50%; font-size: 14px; line-height: 1; z-index: 10;"
                (click)="deleteImage(imageData, i); $event.stopPropagation()"
                title="{{ 'SERVICE_CALL.DeleteImage' | translate }}"
                *ngIf="canDeleteImage(imageData.publicId)"

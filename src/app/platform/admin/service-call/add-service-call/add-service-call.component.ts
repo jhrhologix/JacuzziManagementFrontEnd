@@ -1257,7 +1257,7 @@ async onFileChange(event: any): Promise<void> {
       // Upload to Cloudinary immediately
         const result = await this.imageApiService.uploadImage(file, serviceCallNumber, currentUsername, 'admin');
         
-        // Add to display array
+        // Add to display array immediately
       this.cloudinaryImages.push({
         publicId: result.publicId,
         url: result.thumbnailUrl,

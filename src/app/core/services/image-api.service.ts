@@ -32,8 +32,10 @@ export class ImageApiService {
       // Create unique filename: servicecall_username_date_timestamp
       const timestamp = Date.now();
       const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-      const publicIdSuffix = `${serviceCallNumber}_${username}_${dateStr}_${timestamp}`;
-      // Don't set public_id manually - let Cloudinary auto-generate to avoid double folder
+      const customFilename = `${serviceCallNumber}_${username}_${dateStr}_${timestamp}`;
+      
+      // Set the custom filename as public_id (this will be combined with the folder)
+      formData.append('public_id', customFilename);
       
       formData.append('context', `service_call=${serviceCallNumber}|uploaded_by=${uploadedBy}|username=${username}`);
       formData.append('tags', `service_call,${serviceCallNumber},${uploadedBy},${username}`);
@@ -60,21 +62,35 @@ export class ImageApiService {
   }
 
   /**
-   * Delete image from Cloudinary
+   * Delete image from Cloudinary via backend API (avoids CORS and authentication issues)
    */
   deleteImage(publicId: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('public_id', publicId);
-      formData.append('upload_preset', environment.cloudinary.uploadPreset);
-
-      fetch(this.cloudinaryDeleteUrl, {
+      console.log(`🗑️ Deleting image: ${publicId}`);
+      
+      fetch(`${environment.apiUrl}/api/Cloudinary/DeleteImage`, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ publicId: publicId })
       })
-      .then(response => response.json())
-      .then(data => resolve(data))
-      .catch(error => reject(error));
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(`Delete failed: ${response.status}`);
+        }
+      })
+      .then(data => {
+        console.log(`✅ Image deleted successfully: ${publicId}`);
+        resolve(data);
+      })
+      .catch(error => {
+        console.error(`❌ Delete failed: ${error.message}`);
+        reject(error);
+      });
     });
   }
 
@@ -109,48 +125,43 @@ export class ImageApiService {
   }
 
   /**
-   * Get all images for a service call using Cloudinary Admin API with Basic Auth
+   * Get all images for a service call via backend API
+   * Backend will proxy the call to Cloudinary Admin API to avoid CORS
    */
   async getImagesForServiceCall(serviceCallNumber: string): Promise<ImageUploadResult[]> {
     try {
-      console.log(`🔍 Searching for images for service call: ${serviceCallNumber}`);
+      console.log(`🔍 Fetching images for ${serviceCallNumber} via backend API`);
       
-      // Use Basic HTTP Authentication (this works!)
-      const credentials = btoa(`${environment.cloudinary.apiKey}:${environment.cloudinary.apiSecret}`);
-      
-      // Search for images with the service call number in the public_id
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${environment.cloudinary.cloudName}/resources/image?max_results=100&prefix=service-calls/${serviceCallNumber}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Basic ${credentials}`,
-            'Content-Type': 'application/json'
-          }
+      // Call your backend API that will proxy to Cloudinary
+      const response = await fetch(`${environment.apiUrl}/api/Cloudinary/GetImages?serviceCallNumber=${serviceCallNumber}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add authorization header if needed
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      );
+      });
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Found ${data.resources?.length || 0} existing images for ${serviceCallNumber}`);
+        console.log(`✅ Found ${data.length || 0} images for ${serviceCallNumber} via backend`);
         
-        if (data.resources && data.resources.length > 0) {
-          return data.resources.map((resource: any) => ({
-            publicId: resource.public_id,
-            url: resource.secure_url,
-            thumbnailUrl: this.getThumbnailUrl(resource.public_id),
-            uploadedBy: this.extractUploadedByFromPublicId(resource.public_id)
+        if (data && data.length > 0) {
+          return data.map((resource: any) => ({
+            publicId: resource.publicId || resource.public_id,
+            url: resource.url || resource.secure_url,
+            thumbnailUrl: this.getThumbnailUrl(resource.publicId || resource.public_id),
+            uploadedBy: this.extractUploadedByFromPublicId(resource.publicId || resource.public_id)
           }));
         }
       } else {
-        console.warn(`Failed to fetch images for ${serviceCallNumber}:`, response.status);
-        const errorText = await response.text();
-        console.warn('Error details:', errorText);
+        console.warn(`Backend API failed to fetch images for ${serviceCallNumber}:`, response.status);
       }
     } catch (error) {
-      console.error('Error fetching images from Cloudinary:', error);
+      console.error('Error fetching images via backend:', error);
     }
     
+    // Return empty array if no images found or error occurred
     return [];
   }
 
@@ -207,21 +218,59 @@ export class ImageApiService {
    * Check if user can delete an image based on naming convention
    */
   canDeleteImage(publicId: string, currentUsername: string, isAdmin: boolean): boolean {
+    console.log(`🔍 Checking delete permission:`);
+    console.log(`   - Public ID: ${publicId}`);
+    console.log(`   - Current username: ${currentUsername}`);
+    console.log(`   - Is admin: ${isAdmin}`);
+    
     if (isAdmin) {
+      console.log(`✅ Admin can delete all images`);
       return true; // Admin can delete all images
     }
     
-    // Extract username from public ID: service-calls/SC123/SC123_john_20250917_1234567890
+    // Handle different folder structures:
+    // 1. service-calls/service-calls/SS042048/SS042048_username_date_timestamp
+    // 2. service-calls/SS042048_username_date_timestamp
+    
     const parts = publicId.split('/');
+    console.log(`📂 Public ID parts: [${parts.join(', ')}]`);
+    console.log(`📂 Parts length: ${parts.length}`);
+    
+    let filename = '';
+    
     if (parts.length >= 3) {
-      const filename = parts[2]; // SC123_john_20250917_1234567890
-      const filenameParts = filename.split('_');
-      if (filenameParts.length >= 2) {
-        const uploaderUsername = filenameParts[1]; // john
-        return uploaderUsername === currentUsername; // User can only delete their own images
-      }
+      // Double folder structure: service-calls/service-calls/SS042048/filename
+      filename = parts[parts.length - 1]; // Get the last part (filename)
+      console.log(`📁 Using last part as filename (parts.length >= 3): ${filename}`);
+    } else if (parts.length === 2) {
+      // Single folder structure: service-calls/filename
+      filename = parts[1];
+      console.log(`📁 Using second part as filename (parts.length === 2): ${filename}`);
+    } else {
+      // Root level: just filename
+      filename = publicId;
+      console.log(`📁 Using entire publicId as filename (root level): ${filename}`);
     }
     
+    console.log(`📁 Final extracted filename: ${filename}`);
+    
+    // Extract username from filename: SS042048_username_date_timestamp
+    const filenameParts = filename.split('_');
+    console.log(`🔧 Filename parts: [${filenameParts.join(', ')}]`);
+    console.log(`🔧 Filename parts length: ${filenameParts.length}`);
+    
+    if (filenameParts.length >= 2) {
+      const uploaderUsername = filenameParts[1]; // username part
+      console.log(`👤 Extracted uploader username: '${uploaderUsername}'`);
+      console.log(`👤 Current username: '${currentUsername}'`);
+      console.log(`🔍 Username comparison: '${uploaderUsername}' === '${currentUsername}' = ${uploaderUsername === currentUsername}`);
+      
+      const canDelete = uploaderUsername === currentUsername;
+      console.log(`${canDelete ? '✅' : '❌'} Final permission result: ${canDelete}`);
+      return canDelete;
+    }
+    
+    console.log(`❌ Cannot determine ownership from filename: ${filename}`);
     return false; // Can't determine ownership, deny deletion
   }
 
