@@ -20,6 +20,7 @@ interface Client {
   selectrow: boolean;
   sMS: boolean;
   emailSend: boolean;
+  langPref?: string;
 }
 
 @Component({
@@ -91,12 +92,19 @@ export class SendingEmailComponent implements OnInit {
 
     console.log('Sending SMS to numbers:', formattedNumbers);
 
-    const smsRequest = {
-      to: formattedNumbers,
-      message: message
+    // Use the correct SendEmail endpoint with template IDs
+    // Template ID 12 is used for SMS based on the working VisitController
+    const emailRequest = {
+      MasterEmailTemplateId: 0, // No email template needed for SMS only
+      MasterSMSTemplateId: 12,  // Use SMS template ID 12
+      Recipients: [], // No email recipients for SMS only
+      VisitDate: new Date().toISOString().split('T')[0], // Today's date
+      SMS: formattedNumbers.map(() => true), // All numbers should receive SMS
+      EmailClient: [], // No email clients for SMS only
+      MobileNumber: formattedNumbers
     };
 
-    this.emailService.sendSMS(smsRequest).subscribe({
+    this.emailService.SendEmailConfirmation(emailRequest).subscribe({
       next: (response: any) => {
         console.log('SMS sent successfully:', response);
         this.snackBar.open('SMS sent successfully', 'Close', { duration: 3000 });
@@ -129,5 +137,61 @@ export class SendingEmailComponent implements OnInit {
 
     console.log('Selected mobile numbers:', mobileNumbers);
     return mobileNumbers;
+  }
+
+  public getSelectedEmails(): string[] {
+    const selectedClients = this.clients.filter(client => client.selectrow);
+    const emails: string[] = [];
+
+    selectedClients.forEach(client => {
+      if (client.emailClient && client.email) {
+        // Validate email format
+        if (client.email.includes('@')) {
+          emails.push(client.email);
+        } else {
+          console.warn(`Invalid email for client ${client.firstName} ${client.lastName}: ${client.email}`);
+        }
+      }
+    });
+
+    console.log('Selected emails:', emails);
+    return emails;
+  }
+
+  public sendEmail(emails: string[], message: string): void {
+    if (!emails.length) {
+      this.snackBar.open('No valid email addresses to send email to', 'Close', { duration: 3000 });
+      return;
+    }
+
+    if (!message.trim()) {
+      this.snackBar.open('Please enter a message', 'Close', { duration: 3000 });
+      return;
+    }
+
+    console.log('Sending email to addresses:', emails);
+
+    // Use the correct SendEmail endpoint with template IDs
+    // Template ID 10 is used for email based on the working VisitController
+    const emailRequest = {
+      MasterEmailTemplateId: 10, // Use email template ID 10
+      MasterSMSTemplateId: 0,    // No SMS template needed for email only
+      Recipients: emails,         // Email recipients
+      VisitDate: new Date().toISOString().split('T')[0], // Today's date
+      SMS: [],                    // No SMS for email only
+      EmailClient: emails.map(() => true), // All emails should receive email
+      MobileNumber: []            // No mobile numbers for email only
+    };
+
+    this.emailService.SendEmailConfirmation(emailRequest).subscribe({
+      next: (response: any) => {
+        console.log('Email sent successfully:', response);
+        this.snackBar.open('Email sent successfully', 'Close', { duration: 3000 });
+      },
+      error: (error: any) => {
+        console.error('Error sending email:', error);
+        this.snackBar.open('Error sending email: ' + (error.error?.message || 'Unknown error'), 'Close', { duration: 5000 });
+      }
+    });
   }
 }

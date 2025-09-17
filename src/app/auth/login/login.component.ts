@@ -56,7 +56,7 @@ export class LoginComponent {
 
   ngOnInit(): void {
     this.createformgroup();
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    const savedLanguage = localStorage.getItem('selectedLanguage') || 'fr';
     this.switchLanguage(savedLanguage);
   }
 

@@ -69,7 +69,8 @@ export class VisitService {
           visitDate: new Date().toISOString().split('T')[0],  // Today's date
           sms: [clientData.sms || false],  // List of SMS preferences
           emailClient: [clientData.emailClient || false],  // List of email preferences
-          mobileNumber: [clientData.streetNumber || clientData.home || '']  // List of mobile numbers
+          mobileNumber: [clientData.streetNumber || clientData.home || ''],  // List of mobile numbers
+          clientLanguagePreferences: [clientData.langPref || 'fr']  // List of client language preferences (default to French)
         };
         console.log('Sending notification with data:', notificationData);
         

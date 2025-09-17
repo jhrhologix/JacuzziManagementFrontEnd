@@ -10,14 +10,23 @@ import { TranslateService } from '@ngx-translate/core';
 })
 
 export class CommonService {
-  private languageChangeSubject = new BehaviorSubject<string>('en'); // Default language is 'en'
+  private languageChangeSubject = new BehaviorSubject<string>('fr'); // Default language is 'fr'
   languageChange$ = this.languageChangeSubject.asObservable();
   private loadingStateSubject = new BehaviorSubject<boolean>(false);
   private secretKey = 'JKDKJHKHKJJLK8937204034HAJKDAKSDJAHKALSHDKLOIE'; 
-  constructor(private http: HttpClient,private translate: TranslateService) {
+constructor(private http: HttpClient,private translate: TranslateService) {
 
-    this.translate.setDefaultLang('en');
+this.translate.setDefaultLang('fr');
+    this.initializeLanguage();
    }
+
+  private initializeLanguage() {
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage) {
+      this.translate.use(savedLanguage);
+      this.languageChangeSubject.next(savedLanguage);
+    }
+  }
    @Output() languageChanged = new EventEmitter<void>();
   private getToken(): string {
     return localStorage.getItem('jwtToken') || '';

@@ -5,14 +5,14 @@
                 <h4> {{ 'SEND_EMAIL.Confirmation_Email' | translate }}
                     <div class="btnsdiv d-flex gap-2 " style="margin-left: auto;">
                         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#EmailVisitsModal">
-                            <div *ngIf="isTemplateUpdate === false">{{ 'SEND_EMAIL.ADD_EMAIL' | translate }}</div>
-                            <div *ngIf="isTemplateUpdate === true">{{ 'SEND_EMAIL.EDIT_EMAIL' | translate }}</div>
+                            <div *ngIf="isEmailTemplateUpdate === false">{{ 'SEND_EMAIL.ADD_EMAIL' | translate }}</div>
+                            <div *ngIf="isEmailTemplateUpdate === true">{{ 'SEND_EMAIL.EDIT_EMAIL' | translate }}</div>
                         </button>
                     </div>
                     <div class="btnsdiv d-flex gap-2">
                         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#SMSVisitsModal">
-                            <div *ngIf="isTemplateUpdate === false">{{ 'SEND_EMAIL.ADD_SMS' | translate }}</div>
-                            <div *ngIf="isTemplateUpdate === true">{{ 'SEND_EMAIL.EDIT_SMS' | translate }}</div>
+                            <div *ngIf="isSMSTemplateUpdate === false">{{ 'SEND_EMAIL.ADD_SMS' | translate }}</div>
+                            <div *ngIf="isSMSTemplateUpdate === true">{{ 'SEND_EMAIL.EDIT_SMS' | translate }}</div>
                         </button>
                     </div>
                 </h4>
@@ -118,6 +118,17 @@
                                 </mat-checkbox>
                             </td>
                         </ng-container>
+                        
+                        <!-- Language Column -->
+                        <ng-container matColumnDef="language">
+                            <th mat-header-cell *matHeaderCellDef> Language </th>
+                            <td mat-cell *matCellDef="let client">
+                                <span [style.color]="client.langPref === 'en' ? '#007bff' : '#6c757d'"
+                                      [style.font-weight]="'500'">
+                                    {{ client.langPref === 'en' ? 'English' : 'Français' }}
+                                </span>
+                            </td>
+                        </ng-container>
                 
                         <!-- Header Row -->
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -156,17 +167,52 @@
                     </div>
                   </div>
                 <form [formGroup]="emailTemplateForm" autocomplete="off">
+                    <!-- Language Toggle -->
                     <div class="form-group mb-3">
-                        <label for="emailTemplateSubject"> {{'SEND_EMAIL.EmailSubject' | translate }} </label>
-                        <input type="text" class="form-control" id="emailTemplateSubject" formControlName="emailTemplateSubject">
+                        <label class="form-label">Language / Langue</label>
+                        <div class="btn-group" role="group">
+                            <button type="button" 
+                                    class="btn" 
+                                    [class.btn-primary]="selectedLanguage === 'en'"
+                                    [class.btn-outline-primary]="selectedLanguage !== 'en'"
+                                    (click)="switchLanguage('en')">
+                                English
+                            </button>
+                            <button type="button" 
+                                    class="btn" 
+                                    [class.btn-primary]="selectedLanguage === 'fr'"
+                                    [class.btn-outline-primary]="selectedLanguage !== 'fr'"
+                                    (click)="switchLanguage('fr')">
+                                Français
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- Subject Fields -->
+                    <div class="form-group mb-3">
+                        <label for="templateSubject" class="form-label">
+                            {{ 'SEND_EMAIL.EmailSubject' | translate }} ({{selectedLanguage === 'en' ? 'English' : 'Français'}})
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="templateSubject"
+                               [(ngModel)]="dataEmailSubject"
+                               [ngModelOptions]="{standalone: true}"
+                               [placeholder]="selectedLanguage === 'en' ? 'Enter English subject' : 'Entrez le sujet en français'">
+                    </div>
+
+                    <!-- Email Body -->
                     <div class="form-group">
-                        <label for="exampleFormControlTextarea1"> {{'SEND_EMAIL.EmailBody' | translate }} </label>
-                        <ckeditor [editor]="editor" formControlName="emailTemplateBody" [config]="configEmailBody" [data]="dataEmailBody"></ckeditor>
+                        <label for="exampleFormControlTextarea1"> 
+                            {{ 'SEND_EMAIL.EmailBody' | translate }} ({{selectedLanguage === 'en' ? 'English' : 'Français'}})
+                        </label>
+                        <ckeditor [editor]="editor" formControlName="emailTemplateBody" [config]="configEmailBody"
+                            [data]="dataEmailBody"></ckeditor>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{'MODAL.Cancel' | translate }} </button>
-                        <button type="submit" class="btn btn-primary" (click)="onTemplateSubmit()">
+                        <button type="submit" class="btn btn-primary" 
+                                (click)="onTemplateSubmit()">
                            <div *ngIf="isTemplateUpdate === false">
                             {{'HEADER.SAVE' | translate }}
                            </div> 
@@ -196,17 +242,38 @@
                     </div>
                   </div>
                 <form [formGroup]="smsTemplateForm" autocomplete="off">
+                    <!-- Language Toggle for SMS -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Language / Langue</label>
+                        <div class="btn-group" role="group">
+                            <button type="button" 
+                                    class="btn" 
+                                    [class.btn-primary]="selectedSMSLanguage === 'en'"
+                                    [class.btn-outline-primary]="selectedSMSLanguage !== 'en'"
+                                    (click)="switchSMSLanguage('en')">
+                                English
+                            </button>
+                            <button type="button" 
+                                    class="btn" 
+                                    [class.btn-primary]="selectedSMSLanguage === 'fr'"
+                                    [class.btn-outline-primary]="selectedSMSLanguage !== 'fr'"
+                                    (click)="switchSMSLanguage('fr')">
+                                Français
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
-                        <label for="smsTemplateBody"> {{'SEND_EMAIL.EmailBody' | translate }} </label>
+                        <label for="smsTemplateBody"> {{'SEND_EMAIL.EmailBody' | translate }} ({{selectedSMSLanguage === 'en' ? 'English' : 'Français'}}) </label>
                         <ckeditor [editor]="editor1" formControlName="smsTemplateBody" [config]="configEmailBody1" [data]="dataSMSBody"></ckeditor>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> {{'MODAL.Cancel' | translate }} </button>
                         <button type="submit" class="btn btn-primary" (click)="onSMSTemplateSubmit()">
-                           <div *ngIf="isTemplateUpdate === false">
+                           <div *ngIf="isSMSTemplateUpdate === false">
                             {{'HEADER.SAVE' | translate }}
                            </div> 
-                           <div *ngIf="isTemplateUpdate === true">
+                           <div *ngIf="isSMSTemplateUpdate === true">
                             {{'HEADER.Update' | translate }}
                            </div> 
                         </button>

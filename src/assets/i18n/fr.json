@@ -43,9 +43,9 @@
       "CONJOINT_LAST_NAME": "Nom de famille du conjoint",
       "CONJOINT_FIRST_NAME": "Prénom du conjoint",
       "SPA_LEVE": "Spa levé",
+      "PoolSpecialistNAme":"Vendeur de spa (Lieu d'achat)",
       "SpaBrandLabel":"Marque",
       "SpaModelLabel":"Modèle",
-      "PoolSpecialistNAme":"Lieu d'achat",
       "Series":"Série",
       "PurchaseDate":"Date d'achat",
       "WarrantyDate":"Date fin de garantie",
@@ -89,19 +89,20 @@
       "REQUIRED_LastName" : "Le nom de famille est obligatoire",
       "Logout" : "déconnexion",
       "REQUIRED_Area" : "Veuillez sélectionner la zone",
+      "REQUIRED_Pool Specialist" : "Veuillez sélectionner un vendeur de spa (lieu d'achat)",
       "REQUIRED_SpaBrand" : "Veuillez sélectionner la marque",
       "REQUIRED_SpaModel" : "Veuillez sélectionner un modèle",
-      "REQUIRED_Pool Specialist" : "Veuillez sélectionner un lieu d'achat",
       "REQUIRED_Series" : "La série est obligatoire",
       "REQUIRED_PurchaseDate" : "Sélectionner la date d'achat",
       "REQUIRED_WarrantyDate" : "Sélectionnez la date de garantie",
-      "Service_Call": "Appel de nouveaux services",
+      "Service_Call": "Appel de service",
       "EMAIL": "Courriel",
       "REQUIREDFIELD":"Le champ ne contient aucun caractère spécial ni espace",
       "Update": "Mise à jour",
       "NOTES": "Remarques",
       "COMMENTS": "Commentaires",
       "SAVE": "Enregistrer",
+      "UPDATE": "Mettre à jour",
       "SaveChanges":"Enregistrer les modifications",
       "DELETE": "Supprimer",
       "PAST_CALLS": "Anciens appels de services",
@@ -115,13 +116,13 @@
       "Service_Call_Description":"Description de l'appel de service",
       "SPA_BRAND_NAME":"Nom de la marque du spa",
       "Spa_Model_Name": "Nom du modèle de spa",
-      "Pool_Specialist_Name": "Nom du spécialiste de la piscine",
+      "Pool_Specialist_Name": "Nom du fournisseur de service",
      "Calender":"Calendrier",
      "SendEmail":"Envoi Courriels",
     "Report":"Rapports",
     "Parameters":"Paramètres",
     "ServiceCall":"Appels de Service",
-    "Client":"Clientes",
+    "Client":"Clients",
      "SpouseFirstName":"Nom Conjoint",
     "SpouseLastName" : "Prénom Conjoint",
      "Remove_Button":"Effacer le filtre de recherche",
@@ -137,6 +138,9 @@
       "REQUIRED_Role" : "Le rôle est requis.",
       "REQUIRED_Question" : "Une question secrète est requise.",
       "REQUIRED_Answer" : "Une réponse est requise.",
+      "REQUIRED_Technician": "Le technicien est requis.",
+      "REQUIRED_VisitDate": "La date de visite est requise.",
+      "LANGUAGE_PREFERENCE": "Préférence de langue",
       "ContactUs": "Contactez-nous",
       "Send_Notification":"Envoyer une notification",
      "Show_Route":"Afficher l'itinéraire"
@@ -152,13 +156,15 @@
      "ToDate": "À ce jour",
      "Waitinglistfilter":"Filtre de liste d'attente",
      "year":"Sélectionnez l'année",
-     "month":"Sélectionnez le mois"
+     "month":"Sélectionnez le mois",
+     "Edit_Notification": "Modifier les Modèles de Notification",
+  "DeleteImage": "Supprimer l'Image"
     },
 
     "SPA_MODEL": {
     "Spa_Brands" : "Marques de spas",
     "Spa_Models": "Modèles de spas",
-    "Pool_Specialist_list": "Liste des lieux d'achat"
+    "Pool_Specialist_list": "Liste des fournisseurs de service"
      },
 
      "ACCOUNTS": {
@@ -182,6 +188,7 @@
 
      "SEND_EMAIL": {
       "Confirmation_Email": "Envoyer une confirmation",
+      "Confirmation_SMS": "SMS de Confirmation",
       "DATE_OF_VISIT": "Sélectionnez la date de la visite",
       "EDIT_EMAIL_TEMPLATE": "Modifier le modèle d'e-mail",
       "SEARCH": "Recherche",
@@ -190,8 +197,17 @@
       "ADD_SMS": "Ajouter un modèle SMS",
       "EDIT_EMAIL": "Modifier le modèle d'e-mail",
       "EDIT_SMS": "Modifier le modèle SMS",
+      "EDIT_TEMPLATE": "Modifier le modèle",
       "Confirmation": "Envoyer une confirmation",
-      "EmailBody": "Corps de l'e-mail"
+      "EmailBody": "Corps de l'email/SMS",
+      "EmailSubject": "Sujet de l'email",
+      "EmailSubjectEN": "Sujet de l'email (Anglais)",
+      "EmailSubjectFR": "Sujet de l'email (Français)",
+      "EmailBodyEN": "Corps de l'email (Anglais)",
+      "EmailBodyFR": "Corps de l'email (Français)",
+      "BilingualTemplate": "Éditeur de modèle bilingue",
+      "EnglishTab": "English",
+      "FrenchTab": "Français"
   
      },
 
@@ -211,9 +227,10 @@
     "ClientName": "Nom du client",
     "AddVisit": "Ajouter une visite",
     "Send": "Envoyer",
+    "SendWorkOrder": "Envoyer le bon de travail",
     "Mail": "Courrier",
     "SubTotal": "Sous-total",
-    "ServiceList": "List des appels de services",
+    "ServiceList": "Liste des appels de services",
     "Issue": "Probleme",
     "Status": "Statut",
     "Edit": "Modifier",
@@ -240,7 +257,7 @@
      "closedservice": "EstFermé",
     "UploadImages":"Télécharger des images",
     "ClientNumber": "Numéro Client",
-    "PoolSpecialist": "Spécialiste Piscine",
+    "PoolSpecialist": "Fournisseur de Service",
     "PlacementDate": "Date de Placement"
 
    },

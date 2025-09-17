@@ -24,16 +24,12 @@ export class MainContainorComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeLanguage();
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    if (savedLanguage) {
-    this.commonservice.switchLanguage(savedLanguage); // Set the language from localStorage
-    }
     this.changesidebar();
     this.userName = localStorage.getItem('name');
-    
   }
+  
   private initializeLanguage(): void {
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Default to 'en' if not set
+    const savedLanguage = localStorage.getItem('selectedLanguage') || 'fr'; // Default to 'fr' if not set
     this.commonservice.switchLanguage(savedLanguage);
   }
 

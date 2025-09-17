@@ -32,9 +32,9 @@
     "CLIENT_ID": "Client Id",
     "Client_Number": "Client Number",
     "NAME": "Name",
+    "PoolSpecialistNAme": "Spa Vendor (Purchase Location)",
     "SpaBrandLabel": "Brand",
     "SpaModelLabel": "Model",
-    "PoolSpecialistNAme": "Purchase Location",
     "Series": "Serial",
     "PurchaseDate": "Purchase Date",
     "WarrantyDate": "Warranty Date",
@@ -60,9 +60,9 @@
     "REQUIRED_FirstName": "First Name is required",
     "REQUIRED_LastName": "Last Name is required",
     "REQUIRED_Area": "Please select Area",
+    "REQUIRED_Pool Specialist": "Please select Spa Vendor (Purchase Location)",
     "REQUIRED_SpaBrand": "Please select Brand",
     "REQUIRED_SpaModel": "Please select Model",
-    "REQUIRED_Pool Specialist": "Please select Purchase Location",
     "REQUIRED_Series": "Series is required",
     "REQUIRED_PurchaseDate": "Select Purchase Date",
     "REQUIRED_WarrantyDate": "Select Warranty Date",
@@ -97,6 +97,7 @@
     "NOTES": "Notes",
     "COMMENTS": "Comments",
     "SAVE": "Save",
+    "UPDATE": "Update",
     "DELETE": "Delete",
     "SaveChanges": "Save changes",
     "PAST_CALLS": "Past Service Calls",
@@ -110,8 +111,8 @@
     "Service_Call_Description": "Service Call Description",
     "SPA_BRAND_NAME": "Spa Brand Name",
     "Spa_Model_Name": "Spa Model Name",
-    "Pool_Specialist_Name": "Pool Specialist Name",
-    "Calender": "Calender",
+    "Pool_Specialist_Name": "Service Provider Name",
+    "Calender": "Calendar",
     "SendEmail": "Send Email",
     "Report": "Reporting",
     "Parameters": "Settings",
@@ -132,6 +133,9 @@
     "REQUIRED_Role": "Role is required.",
     "REQUIRED_Question": "Secret Question is required.",
     "REQUIRED_Answer": "Answer is required.",
+    "REQUIRED_Technician": "Technician is required.",
+    "REQUIRED_VisitDate": "Visit date is required.",
+    "LANGUAGE_PREFERENCE": "Language Preference",
     "ContactUs": "Contact us",
     "Send_Notification": "Send Notification",
     "Show_Route": "Show Route"
@@ -146,12 +150,14 @@
    "ToDate": "To Date",
    "Waitinglistfilter":"Waiting List Filter",
    "year":"Select Year",
-   "month":"Select Month"
+   "month":"Select Month",
+   "Edit_Notification": "Edit Notification Templates",
+  "DeleteImage": "Delete Image"
   },
   "SPA_MODEL": {
     "Spa_Brands" : "Spa Brands",
     "Spa_Models": "Spa Models",
-    "Pool_Specialist_list": "Purchase Location list"
+    "Pool_Specialist_list": "Service Provider list"
   },
   "ACCOUNTS": {
     "NEW_USER" : "New User",
@@ -172,6 +178,7 @@
   },
   "SEND_EMAIL": {
     "Confirmation_Email": "Send Confirmation",
+    "Confirmation_SMS": "Confirmation SMS",
     "DATE_OF_VISIT": "Select Visit Date",
     "EDIT_EMAIL_TEMPLATE": "Email Template",
     "SEARCH": "Search",
@@ -180,8 +187,17 @@
     "EDIT_EMAIL": "Edit Email Template",
     "ADD_SMS":" Add SMS Template",
     "EDIT_SMS": "Edit SMS Template",
+    "EDIT_TEMPLATE": "Edit Template",
     "Confirmation": "Send Confirmation",
-    "EmailBody": "Email Body"
+    "EmailBody": "Email/SMS Body",
+    "EmailSubject": "Email Subject",
+    "EmailSubjectEN": "Email Subject (English)",
+    "EmailSubjectFR": "Email Subject (French)",
+    "EmailBodyEN": "Email Body (English)",
+    "EmailBodyFR": "Email Body (French)",
+    "BilingualTemplate": "Bilingual Template Editor",
+    "EnglishTab": "English",
+    "FrenchTab": "Français"
   },
   "SPA_REPORT": {
     "Report_Visit": "Report of Visits",
@@ -189,7 +205,7 @@
     "Select_VisitDate": "Select Visit Date",
     "Visit_Date2": "Date of Visit 2",
     "Excel": "Export to Excel",
-    "Order_Parts": "Parts of Order Report",
+    "Order_Parts": "Order Parts Report",
     "Schedule": "Schedule Report"
   },
   "SERVICE_CALL": {
@@ -197,13 +213,14 @@
     "ClientName": "Client Name",
     "AddVisit": "Add Visit",
     "Send": "Send",
+    "SendWorkOrder": "Send Work Order",
     "Mail": "Mail",
     "SubTotal": "Sub total",
     "ServiceList": "List of service calls",
     "Issue": "Issue",
     "Status": "Status",
     "Edit": "Edit",
-    "NewServiceCall": "New Service call",
+    "NewServiceCall": "Service Call Info",
     "ProblemDescription": "Description of the Problem",
     "TechnicianName": "Technician Name",
     "VisitDate": "Visit Date",
@@ -226,14 +243,14 @@
     "closedservice": "IsClosed",
     "UploadImages":"Upload Images",
     "ClientNumber": "Client Number",
-    "PoolSpecialist": "Pool Specialist",
+    "PoolSpecialist": "Service Provider",
     "PlacementDate": "Placement Date"
   },
   "Technician": {
     "TSchedules": "Schedules of the day",
     "ShowSchedule": "Show Schedules",
     "ServiceRequester": "Service requester",
-    "PendingParts": "Paending parts",
+    "PendingParts": "Pending parts",
     "VisitInfo": "Visit Info",
     "TechnicianPage": "Technician Page",
     "ServiceCallInfo": "Service Call Info",
@@ -251,7 +268,7 @@
     "DeleteBrand": "Are you sure you want to delete this Brand ?",
     "DeleteModel": "Are you sure you want to remove the selected spa model ?",
     "AttnBrand": "Unable to delete this Brand. This Brand has one or more associated Models and cannot be removed.",
-    "DeletePoolSpecl": "Are you sure you want to remove the selected purchase location?",
+    "DeletePoolSpecl": "Are you sure you want to remove the selected service provider?",
     "DeleteClient": "Are you sure you want to delete the client ?",
     "DeleteSpa": "Are you sure you want to remove the selected spa ?",
     "DeleteServiceCall": "Are you sure you want to delete the Service Call ?",
@@ -277,9 +294,9 @@
     "EnterAns": "Enter answer",
     "SearchBrand": "SEARCH BRAND",
     "NewModelName": "ENTER NEW MODEL NAME",
-    "SearchPoolSpec": "SEARCH PURCHASE LOCATION",
+    "SearchPoolSpec": "SEARCH SERVICE PROVIDER",
     "EnterAssignDays": "Enter Assign Days",
-    "SelectPoolSpc": "Please choose a purchase location!"
+    "SelectPoolSpc": "Please choose a service provider!"
   },
   "REQUIRED": {
     "Required": "ef"

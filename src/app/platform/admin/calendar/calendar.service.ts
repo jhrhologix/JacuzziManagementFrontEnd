@@ -48,6 +48,15 @@ export class CalendarService {
   getMonthesList() {
     return this.httprequest.get(`${environment.apiUrl}/${this.getMonthesURL}`);
   }
+
+  // Email template methods
+  getEmailTemplate(templateId: number) {
+    return this.httprequest.get(`${environment.apiUrl}/api/EmailSechedule/GetEmailTemplate?templateId=${templateId}`);
+  }
+  
+  saveEmailTemplate(templateData: any) {
+    return this.httprequest.post(`${environment.apiUrl}/api/EmailSechedule/SaveMasterEmailTemplate`, templateData);
+  }
 }
 export interface CreateEventParams {
   start: string;

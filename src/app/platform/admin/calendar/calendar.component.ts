@@ -67,6 +67,15 @@ toDate: any = null;
   setPriority = false;
   priority: any;
   filtersCollapsed = false;
+  
+  // Notification template editing properties
+  selectedNotificationLanguage: string = 'en';
+  notificationEmailSubject: string = '';
+  notificationEmailBody: string = '';
+  notificationEmailSubjectEN: string = '';
+  notificationEmailBodyEN: string = '';
+  notificationEmailSubjectFR: string = '';
+  notificationEmailBodyFR: string = '';
 
   constructor(
     
@@ -108,8 +117,6 @@ toDate: any = null;
     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
     
     this.calendarForm = new FormGroup({
-      fromDate: new FormControl(null),
-      toDate: new FormControl(null),
       selectedYear: new FormControl(currentYear.toString()),
       selectedMonth: new FormControl(currentMonth.toString()),
     });
@@ -576,5 +583,78 @@ toDate: any = null;
 
   toggleFilters(): void {
     this.filtersCollapsed = !this.filtersCollapsed;
+  }
+
+  editNotificationTemplates(): void {
+    // Load template 13 data when modal opens
+    this.loadNotificationTemplate();
+  }
+
+  loadNotificationTemplate(): void {
+    this.isLoading = true;
+    // Load template 13 data
+    this.calendarService.getEmailTemplate(13).subscribe((response: any) => {
+      if (response && response.value && response.value.length > 0) {
+        const template = response.value[0];
+        
+        // Load both English and French content
+        this.notificationEmailSubjectEN = template.templateSubjectEN || '';
+        this.notificationEmailBodyEN = template.templateBodyEN || '';
+        
+        this.notificationEmailSubjectFR = template.templateSubjectFR || '';
+        this.notificationEmailBodyFR = template.templateBodyFR || '';
+        
+        // Set initial values for display
+        this.notificationEmailSubject = this.notificationEmailSubjectEN;
+        this.notificationEmailBody = this.notificationEmailBodyEN;
+      }
+      this.isLoading = false;
+    });
+  }
+
+  switchNotificationLanguage(language: string): void {
+    this.selectedNotificationLanguage = language;
+    
+    if (language === 'fr') {
+      this.notificationEmailSubject = this.notificationEmailSubjectFR;
+      this.notificationEmailBody = this.notificationEmailBodyFR;
+    } else {
+      this.notificationEmailSubject = this.notificationEmailSubjectEN;
+      this.notificationEmailBody = this.notificationEmailBodyEN;
+    }
+  }
+
+  saveNotificationTemplate(): void {
+    // Save current content before submitting
+    if (this.selectedNotificationLanguage === 'fr') {
+      this.notificationEmailSubjectFR = this.notificationEmailSubject;
+      this.notificationEmailBodyFR = this.notificationEmailBody;
+    } else {
+      this.notificationEmailSubjectEN = this.notificationEmailSubject;
+      this.notificationEmailBodyEN = this.notificationEmailBody;
+    }
+
+    const requestModel = {
+      masterEmailTemplateId: 13,
+      emailTemplateName: 'Notificaation of schedule',
+      templateSubjectEN: this.notificationEmailSubjectEN,
+      templateSubjectFR: this.notificationEmailSubjectFR,
+      templateBodyEN: this.notificationEmailBodyEN,
+      templateBodyFR: this.notificationEmailBodyFR,
+      isActive: true
+    };
+
+    this.calendarService.saveEmailTemplate(requestModel).subscribe((response: any) => {
+      if (response && response.isSuccess) {
+        this.toaster.success('Notification template updated successfully');
+        // Close modal
+        const modalElement = document.getElementById('NotificationTemplateModalclose');
+        if (modalElement) {
+          modalElement.click();
+        }
+      } else {
+        this.toaster.error('Failed to update notification template');
+      }
+    });
   }
 }

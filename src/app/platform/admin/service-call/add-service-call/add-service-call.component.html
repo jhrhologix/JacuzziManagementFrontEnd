@@ -39,11 +39,11 @@
             </div>
             <!-- Piscinier -->
             <div class="col-md-6  mb-3">
-                <label for="piscinier" class="form-label"> {{ 'HEADER.PoolSpecialistNAme' | translate }} </label>
+                <label for="piscinier" class="form-label"> {{ 'SERVICE_CALL.PoolSpecialist' | translate }} </label>
                 <select formControlName="poolspecialist" class="form-select" id="piscinier">
                     <option value="" selected
                         *ngIf="createServiceCallForm.get('poolspecialist')?.value === '' || createServiceCallForm.get('poolspecialist')?.value === '0'">
-                        Select Pool Specialist</option>
+                        Select Service Provider</option>
                     <option *ngFor="let option of poolspecialist" [value]="option.id">
                         {{option.name }}
 
@@ -143,7 +143,8 @@
                       <i class="bi bi-x-circle"></i> Remove
                     </button>
                     <div class="upload-status">
-                      <span class="badge bg-success">{{ base64Images.length }} image(s) ready to upload</span>
+                      <span class="badge bg-success" *ngIf="uploadingImage">Uploading images...</span>
+                      <span class="badge bg-success" *ngIf="!uploadingImage && cloudinaryImages.length > 0">{{ cloudinaryImages.length }} image(s) uploaded</span>
                     </div>
                   </div>
                 </div>
@@ -153,18 +154,30 @@
              <label for="images" class="form-label"> {{ 'SERVICE_CALL.ImageService' | translate }} </label>
              <div class="row mb-3 custom-line-scroll"> 
                 
-             <div class="col-md-3" *ngFor="let imageUrl of imageUrls">
-                
-               
-                
-                <img 
-                  [src]="imageUrl" 
-                  alt="Image" 
-                  class="img-fluid" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#image_servicecall" 
-                  (click)="onImageClick(imageUrl)"
-                />
+             <div class="col-md-3" *ngFor="let imageData of cloudinaryImages; let i = index">
+                <!-- Thumbnail Image Container -->
+                <div class="position-relative d-inline-block">
+                  <img 
+                    [src]="imageData.url" 
+                    alt="Service Call Image" 
+                    class="img-fluid" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#image_servicecall" 
+                    (click)="selectedImageUrl = imageData.url"
+                    style="cursor: pointer; border-radius: 8px;"
+                  />
+                  <!-- Delete Button (only show if user can delete this image) -->
+                  <button 
+                    type="button" 
+                    class="btn btn-danger btn-sm position-absolute top-0 end-0 translate-middle"
+                    style="width: 20px; height: 20px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 1;"
+                    (click)="deleteImage(imageData, i); $event.stopPropagation()"
+                    title="{{ 'SERVICE_CALL.DeleteImage' | translate }}"
+                    *ngIf="canDeleteImage(imageData.publicId)"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
               </div>
             </div>
@@ -277,7 +290,7 @@
         <div class="row">
             <div class="col-md-3 mb-3">
                 <label for="technicien" class="form-label"> {{ 'CALENDAR.Technician' | translate }} </label>
-                <select formControlName="technician" class="form-select" id="technicien">
+                <select formControlName="technician" class="form-select" id="technicien" [class.is-invalid]="createTechnicianForm.get('technician')?.invalid && createTechnicianForm.get('technician')?.touched">
                     <!-- <option value="" disabled selected>Select Spa</option> -->
                     <option *ngFor="let option of techniciannamelist" [value]="option.id">
                         {{option.value }}
@@ -285,12 +298,18 @@
                     </option>
 
                 </select>
+                <div *ngIf="createTechnicianForm.get('technician')?.invalid && createTechnicianForm.get('technician')?.touched" class="invalid-feedback">
+                    {{ 'HEADER.REQUIRED_Technician' | translate }}
+                </div>
             </div>
 
             <div class="col-md-3 mb-3">
                 <label for="dateVisit" class="form-label"> {{ 'SERVICE_CALL.VisitDate' | translate }} </label>
                 <input type="date" formControlName="dateVisit" [value]="currentDate" class="form-control"
-                    id="dateVisit">
+                    id="dateVisit" [class.is-invalid]="createTechnicianForm.get('dateVisit')?.invalid && createTechnicianForm.get('dateVisit')?.touched">
+                <div *ngIf="createTechnicianForm.get('dateVisit')?.invalid && createTechnicianForm.get('dateVisit')?.touched" class="invalid-feedback">
+                    {{ 'HEADER.REQUIRED_VisitDate' | translate }}
+                </div>
             </div>
 
             <div class="col-md-2 mb-3">
@@ -472,7 +491,7 @@
             </div>
             <div class="col-md-8">
                 <div class="btnsdiv d-flex gap-2 " style="align-items: flex-end;margin-top: 36px;">
-                    <button (click)="sendmail()" class="btn btn-outline-primary "> {{ 'SERVICE_CALL.Send' | translate }}
+                    <button (click)="sendWorkOrder()" class="btn btn-outline-primary "> {{ 'SERVICE_CALL.SendWorkOrder' | translate }}
                     </button>
 
                     <button style="margin-left: auto;" class="btn btn-outline-primary" data-bs-toggle="modal"
@@ -530,8 +549,45 @@
                     </div>
                   </div> -->
                 <form [formGroup]="emailTemplateForm" autocomplete="off">
+                    <!-- Language Toggle -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Language / Langue</label>
+                        <div class="btn-group" role="group">
+                            <button type="button" 
+                                    class="btn" 
+                                    [class.btn-primary]="selectedLanguage === 'en'"
+                                    [class.btn-outline-primary]="selectedLanguage !== 'en'"
+                                    (click)="switchLanguage('en')">
+                                English
+                            </button>
+                            <button type="button" 
+                                    class="btn" 
+                                    [class.btn-primary]="selectedLanguage === 'fr'"
+                                    [class.btn-outline-primary]="selectedLanguage !== 'fr'"
+                                    (click)="switchLanguage('fr')">
+                                Français
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Subject Fields -->
+                    <div class="form-group mb-3">
+                        <label for="templateSubject" class="form-label">
+                            {{'SEND_EMAIL.EmailSubject' | translate }} ({{selectedLanguage === 'en' ? 'English' : 'Français'}})
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="templateSubject"
+                               [(ngModel)]="dataEmailSubject"
+                               [ngModelOptions]="{standalone: true}"
+                               [placeholder]="selectedLanguage === 'en' ? 'Enter English subject' : 'Entrez le sujet en français'">
+                    </div>
+
+                    <!-- Email Body -->
                     <div class="form-group">
-                        <label for="exampleFormControlTextarea1"> {{'SEND_EMAIL.EmailBody' | translate }} </label>
+                        <label for="exampleFormControlTextarea1"> 
+                            {{'SEND_EMAIL.EmailBody' | translate }} ({{selectedLanguage === 'en' ? 'English' : 'Français'}})
+                        </label>
                         <ckeditor [editor]="editor" formControlName="emailTemplateBody" [config]="configEmailBody"
                             [data]="dataEmailBody"></ckeditor>
                         <!-- <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea> -->
@@ -541,10 +597,10 @@
                             translate }} </button>
                         <button type="submit" class="btn btn-primary" (click)="onTemplateSubmit()">
                             <div *ngIf="isTemplateUpdate === false">
-                                {{ 'HEADER.SAVE' | translate }}
+                                {{ 'SAVE' | translate }}
                             </div>
                             <div *ngIf="isTemplateUpdate === true">
-                                {{'HEADER.UPDATE' | translate }}
+                                {{ 'UPDATE' | translate }}
                             </div>
                         </button>
                     </div>

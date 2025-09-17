@@ -197,7 +197,7 @@ export class SpaDetailsComponent {
     
     this.techService.getPoolSpecialist().subscribe((response: any) => {
       if (response) {
-        this.poolSpecialist = response.data;
+        this.poolSpecialist = response.data.sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
     });
   }

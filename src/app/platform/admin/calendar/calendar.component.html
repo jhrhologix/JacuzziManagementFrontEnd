@@ -14,7 +14,11 @@
               class="form-control" id="visit-date-1">
           </div>
         </div>
-        <div class="col-md-8 d-flex justify-content-end align-items-end">
+        <div class="col-md-8 d-flex justify-content-end align-items-end gap-2">
+          <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#NotificationTemplateModal">
+            <i class="fas fa-edit"></i>
+            {{ 'CALENDAR.Edit_Notification' | translate }}
+          </button>
           <button type="button" class="btn btn-outline-secondary filter-toggle" (click)="toggleFilters()">
             <i class="fas" [ngClass]="{'fa-chevron-up': !filtersCollapsed, 'fa-chevron-down': filtersCollapsed}"></i>
             {{ filtersCollapsed ? 'Show Filters' : 'Hide Filters' }}
@@ -89,23 +93,6 @@
           
           
           <div class="row">
-            
-              <div class="col-lg-6 mb-2">
-                <b>{{ 'CALENDAR.FromDate' | translate }}</b>
-                <div class="calendar">
-                  <input type="date" (change)="updateMinToDate()" formControlName="fromDate" name="fromDate"
-                    class="form-control" id="from-date-1">
-        
-                </div>
-              </div>
-              <div class="col-lg-6 mb-2">
-                <b>{{ 'CALENDAR.ToDate' | translate }}</b>
-                <div class="calendar">
-                  <input type="date" [min]="minToDate" formControlName="toDate" name="toDate" (change)="onToDateChange()"
-                    class="form-control" id="to-date-1">
-        
-                </div>
-              </div>
             <div class="col-lg-6 mb-2">
               <div class="calendar">
                 <b><label for="year-select">{{ 'CALENDAR.year' | translate }}</label></b>
@@ -156,6 +143,7 @@
                 <p><b>Issue: </b>{{ job.issueClass_descriptionEn }}</p>
                 <p><b>Distance:</b> {{ job.distance || 'N/A'}}</p>
                 <p><b>Duration:</b> {{ job.duration || 'N/A'}}</p>
+                <p *ngIf="!job.address || job.address.trim() === ''" class="text-warning"><small><i class="fas fa-exclamation-triangle"></i> Address missing for route calculation</small></p>
                 <p class="ptagwithselet">
                   <b>Priority:</b>
                   <select  class="form-select" [(ngModel)]="job.priority" [ngModelOptions]="{ standalone: true }"
@@ -212,6 +200,79 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- Notification Template Modal -->
+<div class="modal fade" id="NotificationTemplateModal" tabindex="-1" aria-labelledby="NotificationTemplateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="NotificationTemplateModalLabel">{{ 'CALENDAR.Edit_Notification' | translate }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="loader" class="loader" *ngIf="isLoading">
+          <div class="load"></div>
+        </div>
+        
+        <!-- Language Toggle -->
+        <div class="form-group mb-3">
+          <label class="form-label">Language / Langue</label>
+          <div class="btn-group" role="group">
+            <button type="button" 
+                    class="btn" 
+                    [class.btn-primary]="selectedNotificationLanguage === 'en'"
+                    [class.btn-outline-primary]="selectedNotificationLanguage !== 'en'"
+                    (click)="switchNotificationLanguage('en')">
+              English
+            </button>
+            <button type="button" 
+                    class="btn" 
+                    [class.btn-primary]="selectedNotificationLanguage === 'fr'"
+                    [class.btn-outline-primary]="selectedNotificationLanguage !== 'fr'"
+                    (click)="switchNotificationLanguage('fr')">
+              Français
+            </button>
+          </div>
+        </div>
+
+        <!-- Email Template Section -->
+        <div class="mb-4">
+          <h6>{{ 'SEND_EMAIL.Confirmation_Email' | translate }}</h6>
+          
+          <!-- Email Subject -->
+          <div class="form-group mb-3">
+            <label class="form-label">
+              {{ 'SEND_EMAIL.EmailSubject' | translate }} ({{selectedNotificationLanguage === 'en' ? 'English' : 'Français'}})
+            </label>
+            <input type="text" 
+                   class="form-control" 
+                   [(ngModel)]="notificationEmailSubject"
+                   [ngModelOptions]="{standalone: true}">
+          </div>
+
+          <!-- Email Body -->
+          <div class="form-group mb-3">
+            <label class="form-label">
+              {{ 'SEND_EMAIL.EmailBody' | translate }} ({{selectedNotificationLanguage === 'en' ? 'English' : 'Français'}})
+            </label>
+            <textarea class="form-control" 
+                      rows="6" 
+                      [(ngModel)]="notificationEmailBody"
+                      [ngModelOptions]="{standalone: true}"></textarea>
+          </div>
+        </div>
+
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'MODAL.Cancel' | translate }}</button>
+        <button type="button" class="btn btn-primary" (click)="saveNotificationTemplate()">
+          {{ 'HEADER.SAVE' | translate }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

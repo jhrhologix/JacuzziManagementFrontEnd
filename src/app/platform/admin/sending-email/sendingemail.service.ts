@@ -11,13 +11,15 @@ export class SendingemailService {
   addUpdateEmailTemplateURL='api/EmailSechedule/SaveMasterEmailTemplate';
   addUpdateSMSTemplateURL = 'api/EmailSechedule/SaveMasterSMSTemplate';
   getEmailTemplateURL='api/EmailSechedule/GetEmailTemplate?templateId=';
+  getEmailTemplateByLanguageURL='api/EmailSechedule/GetEmailTemplateByLanguage?templateId=';
   sendConfirmationEmailURL='api/EmailSechedule/SendEmail';
   getSMSTemplateURL = 'api/EmailSechedule/GetSMSTemplate?templateId='
-  sendSMSURL = 'api/EmailSechedule/SendSMS';
+  
   constructor(
     private httprequest : HttpClient
 
   ) { }
+  
   getClientEmailSendList(date:any){
     return this.httprequest.post(`${environment.apiUrl}/${this.getClientEmailSendListURL}${date}`, null);
   }
@@ -25,12 +27,17 @@ export class SendingemailService {
   AddUpdateEmailTemplate(model:any){
     return this.httprequest.post(`${environment.apiUrl}/${this.addUpdateEmailTemplateURL}`,model)
   }
+  
   AddUpdateSMSTemplate(model:any){
     return this.httprequest.post(`${environment.apiUrl}/${this.addUpdateSMSTemplateURL}`,model)
   }
 
   GetEmailTemplateByTemplateId(id: any){
     return this.httprequest.get(`${environment.apiUrl}/${this.getEmailTemplateURL}${id}`)
+  }
+
+  GetEmailTemplateByLanguage(id: any, language: string = 'BOTH'){
+    return this.httprequest.get(`${environment.apiUrl}/${this.getEmailTemplateByLanguageURL}${id}&language=${language}`)
   }
   
   GetSMSTemplateByTemplateId(id: any){
@@ -39,9 +46,5 @@ export class SendingemailService {
 
   SendEmailConfirmation(model:any){
     return this.httprequest.post(`${environment.apiUrl}/${this.sendConfirmationEmailURL}`,model)
-  }
-
-  sendSMS(model: any) {
-    return this.httprequest.post(`${environment.apiUrl}/${this.sendSMSURL}`, model);
   }
 }

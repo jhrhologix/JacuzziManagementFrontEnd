@@ -22,8 +22,10 @@ export interface SendEmailElements {
 export interface EmailTemplateModel {
   masterEmailTemplateId: number;
   emailTemplateName: string;
-  emailTemplateSubject:string;
-  emailTemplateBody: string;
+  templateSubjectEN: string;
+  templateSubjectFR: string;
+  templateBodyEN: string;
+  templateBodyFR: string;
   createdBy:  number;
   modifiedBy: number;
   isActive: boolean;
@@ -41,6 +43,7 @@ interface Client {
   selectrow: boolean;
   sMS: boolean;
   emailSend: boolean;
+  langPref?: string;
 }
 
 @Component({
@@ -56,6 +59,7 @@ export class SendingEmailComponent implements OnInit {
   emailSendForm : FormGroup;
   emailTemplateForm : FormGroup;
   smsTemplateForm : FormGroup;
+  templateEditForm : FormGroup;
   visitDate : Date | undefined;
   clientList: Client[] = [];
   templateDataList: any[]=[];
@@ -63,14 +67,26 @@ export class SendingEmailComponent implements OnInit {
   name = 'Angular';
   editor = ClassicEditor;
   editor1 = ClassicEditor;
-  dataEmailBody: string = '';
+  editor2 = ClassicEditor; // For French email body
+  editor3 = ClassicEditor; // For French SMS body
+  dataEmailBodyEN: string = '';
+  dataEmailBodyFR: string = '';
   dataSMSBody: string = '';
+  dataEmailBody: string = '';
+  dataEmailSubject: string = '';
+  selectedLanguage: string = 'en';
+  dataSMSBodyEN: string = '';
+  dataSMSBodyFR: string = '';
+  selectedSMSLanguage: string = 'en';
   templateId: number=10;
   SMStemplateId: number=12;
   emailTemplateModel!: EmailTemplateModel;
   templateEmailModel!: TemplateEmailModel;
   isTemplateUpdate: boolean=false;
+  isEmailTemplateUpdate: boolean=false;
+  isSMSTemplateUpdate: boolean=false;
   isLoading = false;
+  activeLanguageTab: 'en' | 'fr' = 'en';
   public configEmailBody = {
     toolbar: [ 'undo', 'redo', '|', 'bold', 'italic' ],
   
@@ -88,6 +104,7 @@ public configEmailBody1 = {
 this.emailSendForm = new FormGroup('');
 this.emailTemplateForm= new FormGroup('');
 this.smsTemplateForm = new FormGroup('');
+this.templateEditForm = new FormGroup('');
   }
   ngOnInit(){
     this.createformgroup();
@@ -105,12 +122,15 @@ this.smsTemplateForm = new FormGroup('');
       mobileNumber: ['']
     });
 
-    // Separate form for email template
+    // Separate form for email template with bilingual support
     this.emailTemplateForm = this.formBuilder.group({
       masterEmailTemplateId: [0],
       emailTemplateName: ['scheduled appointment'],
-      emailTemplateSubject: ['Confirmation de votre rendez-vous / Your appointment confirmation'],
-      emailTemplateBody: [''],
+      templateSubjectEN: ['Your appointment confirmation'],
+      templateSubjectFR: ['Confirmation de votre rendez-vous'],
+      templateBodyEN: [''],
+      templateBodyFR: [''],
+      emailTemplateBody: [''], // Add this control for the CKEditor
       isActive: [true]
     });
 
@@ -119,6 +139,15 @@ this.smsTemplateForm = new FormGroup('');
       masterSMSTemplateId: [0],
       smsTemplateBody: [''],
       isActive: [true]
+    });
+
+    // Create form for template editing (similar to service call component)
+    this.templateEditForm = this.formBuilder.group({
+      emailTemplateBody: [''],
+      templateSubjectEN: [''],
+      templateSubjectFR: [''],
+      templateBodyEN: [''],
+      templateBodyFR: ['']
     });
   }
   resetbutton(){
@@ -142,6 +171,9 @@ this.smsTemplateForm = new FormGroup('');
       this.sendingEmail.getClientEmailSendList(visitDate).subscribe((response:any)=>{
         if(response)
         {
+        console.log('Raw API response:', response);
+        console.log('Raw client data:', response.value);
+        
         this.clientList = response.value.map((client: any) => ({
           ...client,
           selectrow: true,
@@ -151,6 +183,10 @@ this.smsTemplateForm = new FormGroup('');
           // Set initial email checkbox state based on client preference and email availability
           emailSend: (client.emailClient || client.emailclient) && client.email && client.email.includes('@')
         }));
+        
+        console.log('Processed client list:', this.clientList);
+        console.log('First client langPref:', this.clientList[0]?.langPref);
+        console.log('All client langPrefs:', this.clientList.map(c => ({ name: c.firstName, langPref: c.langPref })));
         
         if(this.clientList.length > 0)
         {    
@@ -169,14 +205,46 @@ this.smsTemplateForm = new FormGroup('');
       if(response)
       {
         this.templateDataList = response.value;
-        this.dataEmailBody= this.templateDataList[0].emailTemplateBody;
+        const template = this.templateDataList[0];
+        
+        // Set bilingual content
+        this.dataEmailBodyEN = template.templateBodyEN || template.emailTemplateBody || '';
+        this.dataEmailBodyFR = template.templateBodyFR || '';
+        
+        
         this.emailTemplateForm.patchValue({
-          emailTemplateBody: this.templateDataList[0].emailTemplateBody,
-          emailTemplateSubject: this.templateDataList[0].emailTemplateSubject
+          masterEmailTemplateId: template.masterEmailTemplateId,
+          templateSubjectEN: template.templateSubjectEN || template.emailTemplateSubject || '',
+          templateSubjectFR: template.templateSubjectFR || '',
+          templateBodyEN: this.dataEmailBodyEN,
+          templateBodyFR: this.dataEmailBodyFR
         });
-        if(this.templateDataList[0].emailTemplateBody !== null)
+
+        // Also populate the template edit form
+        this.templateEditForm.patchValue({
+          templateSubjectEN: template.templateSubjectEN || template.emailTemplateSubject || '',
+          templateSubjectFR: template.templateSubjectFR || '',
+          templateBodyEN: this.dataEmailBodyEN,
+          templateBodyFR: this.dataEmailBodyFR
+        });
+
+        // Set initial values for the template editor
+        this.dataEmailBody = this.dataEmailBodyEN;
+        this.dataEmailSubject = template.templateSubjectEN || template.emailTemplateSubject || '';
+        
+        // Also populate the email template form for the modal
+        this.emailTemplateForm.patchValue({
+          templateSubjectEN: template.templateSubjectEN || template.emailTemplateSubject || '',
+          templateSubjectFR: template.templateSubjectFR || '',
+          templateBodyEN: this.dataEmailBodyEN,
+          templateBodyFR: this.dataEmailBodyFR,
+          emailTemplateBody: this.dataEmailBodyEN
+        });
+        
+        
+        if((this.dataEmailBodyEN !== null && this.dataEmailBodyEN !== '') || (this.dataEmailBodyFR !== null && this.dataEmailBodyFR !== ''))
         {
-          this.isTemplateUpdate=true;
+          this.isEmailTemplateUpdate=true;
         }
         this.isLoading = false;
       }
@@ -184,29 +252,37 @@ this.smsTemplateForm = new FormGroup('');
   }
   getSMSTemplate(id: any) {
     this.isLoading = true;
-    this.sendingEmail.GetSMSTemplateByTemplateId(id).subscribe({
+    this.sendingEmail.GetEmailTemplateByTemplateId(id).subscribe({
       next: (response: any) => {
         if (response && response.value && response.value.length > 0) {
         this.templateDataList = response.value;
           const template = this.templateDataList[0];
           
-          // Validate template data
-          if (!template.smsTemplateBody) {
-            this.toaster.warning('SMS template is empty. Please create a template first.');
-            this.dataSMSBody = '';
-          } else {
-            this.dataSMSBody = template.smsTemplateBody;
-          }
+          
+          // Load both English and French SMS content
+          this.dataSMSBodyEN = template.templateBodyEN || template.smsTemplateBody || '';
+          this.dataSMSBodyFR = template.templateBodyFR || '';
+          
+          console.log('SMS Template loaded:', template);
+          console.log('SMS English body:', this.dataSMSBodyEN);
+          console.log('SMS French body:', this.dataSMSBodyFR);
+          
+          // Use English as default for SMS editing
+          this.dataSMSBody = this.dataSMSBodyEN;
           
           this.smsTemplateForm.patchValue({
             smsTemplateBody: this.dataSMSBody
           });
           
-          this.isTemplateUpdate = true;
+          // Set SMS template update flag
+          if((this.dataSMSBodyEN !== null && this.dataSMSBodyEN !== '') || (this.dataSMSBodyFR !== null && this.dataSMSBodyFR !== ''))
+          {
+            this.isSMSTemplateUpdate = true;
+          }
         } else {
           this.toaster.warning('No SMS template found. Please create a new template.');
           this.dataSMSBody = '';
-          this.isTemplateUpdate = false;
+          this.isSMSTemplateUpdate = false;
         }
         this.isLoading = false;
       },
@@ -228,6 +304,7 @@ this.smsTemplateForm = new FormGroup('');
     'lastName',
     'email',
     'mobileNumber',
+    'language',
     'sMS',
     'emailSend'
   ];
@@ -256,41 +333,59 @@ checkRowSelection(): void {
 onTemplateSubmit(): void {
   this.isLoading = true;
   
-  // Construct the proper email template request model
+  // Save current content before submitting
+  this.saveCurrentLanguageContent(this.selectedLanguage);
+  
+  // Get the current template data
+  const template = this.templateDataList[0];
+  
+  // Construct the request model using the existing template ID
   const requestModel: any = {
-    masterEmailTemplateId: this.isTemplateUpdate ? this.templateDataList[0].masterEmailTemplateId : 0,
-    emailTemplateName: 'scheduled appointment',
-    emailTemplateSubject: this.emailTemplateForm.get('emailTemplateSubject')?.value,
-    emailTemplateBody: this.emailTemplateForm.get('emailTemplateBody')?.value,
+    masterEmailTemplateId: template.masterEmailTemplateId,
+    emailTemplateName: template.emailTemplateName || 'scheduled appointment',
+    templateSubjectEN: this.templateEditForm.get('templateSubjectEN')?.value,
+    templateSubjectFR: this.templateEditForm.get('templateSubjectFR')?.value,
+    templateBodyEN: this.templateEditForm.get('templateBodyEN')?.value,
+    templateBodyFR: this.templateEditForm.get('templateBodyFR')?.value,
     isActive: true
   };
+
+  console.log('Updating email template with ID:', template.masterEmailTemplateId);
+  console.log('Request model:', requestModel);
 
   this.sendingEmail.AddUpdateEmailTemplate(requestModel).subscribe({
     next: (Response: any) => {
       if (Response.value.isSuccess === true) {
-        if (this.isTemplateUpdate === false) {
-          this.toaster.success('Email template created successfully.');
-        } else {
-          this.toaster.success('Email template updated successfully.');
+        this.toaster.success('Email template updated successfully.');
+        
+        // Close the modal
+        const modalElement = document.getElementById('EmailVisitsModal');
+        if (modalElement) {
+          const closeButton = modalElement.querySelector('.btn-close') as HTMLElement;
+          if (closeButton) {
+            closeButton.click();
+          }
         }
-        const btnSamElement = document.getElementById('EmailVisitsModalclose');
-        if (btnSamElement) {
-          btnSamElement.click();
-        }
+        
+        // Refresh the template data
+        this.getEmailTemplate(this.templateId);
       } else {
         this.toaster.error(Response.value.error.message);
       }
       this.isLoading = false;
     },
     error: (error: any) => {
-      console.error('Error saving email template:', error);
-      this.toaster.error('Failed to save email template. Please try again.');
+      console.error('Error updating email template:', error);
+      this.toaster.error('Failed to update email template. Please try again.');
       this.isLoading = false;
     }
   });
 }
 
 onSMSTemplateSubmit(): void {
+  // Save current content before submitting
+  this.saveCurrentSMSLanguageContent(this.selectedSMSLanguage);
+  
   const templateBody = this.smsTemplateForm.get('smsTemplateBody')?.value;
   if (!templateBody || templateBody.trim() === '') {
     this.toaster.error('SMS template body cannot be empty');
@@ -304,29 +399,29 @@ onSMSTemplateSubmit(): void {
   
   this.isLoading = true;
   
-  // Ensure we have a valid template ID
-  const templateId = this.isTemplateUpdate && this.templateDataList[0]?.masterSMSTemplateId 
-    ? this.templateDataList[0].masterSMSTemplateId 
-    : this.SMStemplateId;
-
+  // Get the current template data
+  const template = this.templateDataList[0];
+  
+  // Update both English and French SMS content
   const requestModel = {
-    masterSMSTemplateId: templateId,
-    smsTemplateBody: templateBody.trim()
+    masterEmailTemplateId: template.masterEmailTemplateId,
+    emailTemplateName: template.emailTemplateName || 'scheduled appointment',
+    templateSubjectEN: template.templateSubjectEN || 'Your appointment confirmation',
+    templateSubjectFR: template.templateSubjectFR || 'Confirmation de votre rendez-vous',
+    templateBodyEN: this.dataSMSBodyEN,
+    templateBodyFR: this.dataSMSBodyFR,
+    isActive: true
   };
 
   console.log('Saving SMS template:', requestModel);
 
-  this.sendingEmail.AddUpdateSMSTemplate(requestModel).subscribe({
+  this.sendingEmail.AddUpdateEmailTemplate(requestModel).subscribe({
     next: (response: any) => {
       if (response.value.isSuccess) {
-        this.toaster.success(
-          this.isTemplateUpdate ? 
-          'SMS template updated successfully' : 
-          'SMS template created successfully'
-        );
+        this.toaster.success('SMS template updated successfully');
         
         // Refresh the template data
-        this.getSMSTemplate(templateId);
+        this.getSMSTemplate(this.SMStemplateId);
         
         // Close modal if it exists
         const modalElement = document.getElementById('SMSVisitsModalclose');
@@ -349,7 +444,7 @@ onSMSTemplateSubmit(): void {
 
 getSelectedEmails(): string[] {
   return this.clientList
-    .filter(client => client.selectrow && client.email && client.email.includes('@'))
+    .filter(client => client.selectrow && client.emailSend && client.email && client.email.includes('@'))
                         .map(client => client.email);
 }
 
@@ -406,14 +501,12 @@ onSendConfirmationEmail(): void {
   this.isLoading = true;
 
   try {
-    const selectedMobileNumbers = this.getSelectedMobileNumber();
-const selectedEmails = this.getSelectedEmails();
-    const smsStatus = this.getSelectedSMS();
-    const emailStatus = this.getSelectedEmailsClient();
+    // Get selected clients with their preferences
+    const selectedClients = this.clientList.filter(client => client.selectrow);
     
-    // Check if we have any valid recipients
-    if (selectedMobileNumbers.length === 0 && selectedEmails.length === 0) {
-      this.toaster.error('No valid recipients selected. Please select at least one recipient with a valid phone number or email address.');
+    // Check if we have any selected clients
+    if (selectedClients.length === 0) {
+      this.toaster.error('No clients selected. Please select at least one client.');
       this.isLoading = false;
       return;
     }
@@ -429,44 +522,89 @@ const selectedEmails = this.getSelectedEmails();
       visitDate.toISOString().split('T')[0] : 
       visitDate;
     
-    const requestModel = {
-      masterEmailTemplateId: this.templateId,
-      masterSMSTemplateId: this.SMStemplateId,
-      recipients: selectedEmails,
-      visitDate: formattedDate,
-      sms: smsStatus,
-      emailClient: emailStatus,
-      mobileNumber: selectedMobileNumbers
-    };
+    // Group clients by language preference (default to French if no preference)
+    const englishClients = selectedClients.filter(client => client.langPref === 'en');
+    const frenchClients = selectedClients.filter(client => (client.langPref || 'fr') === 'fr');
     
-    console.log('Sending email request:', requestModel);
+    console.log('English clients:', englishClients);
+    console.log('French clients:', frenchClients);
     
-    this.sendingEmail.SendEmailConfirmation(requestModel).subscribe(
-      (response: any) => {
-        if (response && (response.statusCode === 200 || response.isSuccess === true)) {
-          this.toaster.success(response.message || 'Messages sent successfully.');
-        } else {
-          this.toaster.error(
-            response.message || 
-            'Failed to send emails/SMS. Please try again.'
-          );
-        }
-        this.isLoading = false;
-      },
-      (error) => {
-        console.error('Email send error:', error);
-        this.toaster.error(
-          error.error?.message || 
-          'Server error occurred when sending emails. Please try again.'
-        );
-        this.isLoading = false;
-      }
-    );
+    // Send to English clients
+    if (englishClients.length > 0) {
+      this.sendToClientGroup(englishClients, formattedDate, 'en');
+    }
+    
+    // Send to French clients
+    if (frenchClients.length > 0) {
+      this.sendToClientGroup(frenchClients, formattedDate, 'fr');
+    }
+    
   } catch (error) {
     console.error('Error in onSendConfirmationEmail:', error);
     this.toaster.error('An unexpected error occurred. Please try again.');
     this.isLoading = false;
   }
+}
+
+private sendToClientGroup(clients: any[], visitDate: string, language: string): void {
+  const emails = clients
+    .filter(client => client.emailSend && client.email && client.email.includes('@'))
+    .map(client => client.email);
+    
+  const mobileNumbers = clients
+    .filter(client => client.sMS && client.mobileNumber && client.mobileNumber.trim() !== '')
+    .map(client => client.mobileNumber);
+    
+  const smsStatus = clients
+    .filter(client => client.sMS && client.mobileNumber && client.mobileNumber.trim() !== '')
+    .map(() => true);
+    
+  const emailStatus = clients
+    .filter(client => client.emailSend && client.email && client.email.includes('@'))
+    .map(() => true);
+    
+  const languagePreferences = clients.map(() => language);
+
+  // Check if we have any valid recipients for this language group
+  if (emails.length === 0 && mobileNumbers.length === 0) {
+    console.log(`No valid recipients for ${language} clients`);
+    return;
+  }
+
+  const requestModel = {
+    masterEmailTemplateId: this.templateId,
+    masterSMSTemplateId: this.SMStemplateId,
+    recipients: emails,
+    visitDate: visitDate,
+    sms: smsStatus,
+    emailClient: emailStatus,
+    mobileNumber: mobileNumbers,
+    clientLanguagePreferences: languagePreferences
+  };
+  
+  console.log(`Sending ${language} request:`, requestModel);
+  
+  this.sendingEmail.SendEmailConfirmation(requestModel).subscribe(
+    (response: any) => {
+      if (response && (response.statusCode === 200 || response.isSuccess === true)) {
+        this.toaster.success(`${language === 'en' ? 'English' : 'French'} messages sent successfully.`);
+      } else {
+        this.toaster.error(
+          response.message || 
+          `Failed to send ${language} emails/SMS. Please try again.`
+        );
+      }
+      this.isLoading = false;
+    },
+    (error) => {
+      console.error(`${language} send error:`, error);
+      this.toaster.error(
+        error.error?.message || 
+        `Server error occurred when sending ${language} emails. Please try again.`
+      );
+      this.isLoading = false;
+    }
+  );
 }
 
 // Method to handle row selection
@@ -527,7 +665,8 @@ onEmailChange(client: any, event: any): void {
   // This allows users to keep their preferences independent of row selection
 }
 
-sendSMS() {
+
+  sendSMS() {
   const mobileNumbers = this.getSelectedMobileNumber();
   
   if (!mobileNumbers.length) {
@@ -552,7 +691,19 @@ sendSMS() {
   };
 
   this.isLoading = true;
-  this.sendingEmail.sendSMS(smsRequest).subscribe({
+  // Use the correct SendEmail endpoint with template IDs
+  // Template ID 12 is used for SMS based on the working VisitController
+  const emailRequest = {
+    MasterEmailTemplateId: 0, // No email template needed for SMS only
+    MasterSMSTemplateId: 12,  // Use SMS template ID 12
+    Recipients: [], // No email recipients for SMS only
+    VisitDate: new Date().toISOString().split('T')[0], // Today's date
+    SMS: mobileNumbers.map(() => true), // All numbers should receive SMS
+    EmailClient: [], // No email clients for SMS only
+    MobileNumber: mobileNumbers
+  };
+
+  this.sendingEmail.SendEmailConfirmation(emailRequest).subscribe({
     next: (response: any) => {
       console.log('SMS sent successfully:', response);
       this.toaster.success('SMS sent successfully');
@@ -568,4 +719,99 @@ sendSMS() {
       }
     });
 }
+
+// Method to switch between French and English template editing
+switchLanguage(language: string): void {
+  
+  // Save current content to the current language before switching
+  this.saveCurrentLanguageContent(this.selectedLanguage);
+  
+  this.selectedLanguage = language;
+  
+  // Update the editor content based on selected language
+  if (language === 'fr') {
+    const frenchBody = this.emailTemplateForm.get('templateBodyFR')?.value || '';
+    const frenchSubject = this.emailTemplateForm.get('templateSubjectFR')?.value || '';
+    
+    this.dataEmailBody = frenchBody;
+    this.dataEmailSubject = frenchSubject;
+    
+    // Update both the template edit form and email template form
+    this.templateEditForm.patchValue({
+      emailTemplateBody: frenchBody
+    });
+    this.emailTemplateForm.patchValue({
+      emailTemplateBody: frenchBody
+    });
+  } else {
+    const englishBody = this.emailTemplateForm.get('templateBodyEN')?.value || '';
+    const englishSubject = this.emailTemplateForm.get('templateSubjectEN')?.value || '';
+    
+    this.dataEmailBody = englishBody;
+    this.dataEmailSubject = englishSubject;
+    
+    // Update both the template edit form and email template form
+    this.templateEditForm.patchValue({
+      emailTemplateBody: englishBody
+    });
+    this.emailTemplateForm.patchValue({
+      emailTemplateBody: englishBody
+    });
+  }
+}
+
+// Method to save current editor content to the appropriate language field
+saveCurrentLanguageContent(language?: string): void {
+  // Get content from the email template form (which is bound to the CKEditor)
+  const currentContent = this.emailTemplateForm.get('emailTemplateBody')?.value || '';
+  const currentSubject = this.dataEmailSubject || '';
+  
+  if (language === 'fr') {
+    this.templateEditForm.patchValue({
+      templateBodyFR: currentContent,
+      templateSubjectFR: currentSubject
+    });
+    this.emailTemplateForm.patchValue({
+      templateBodyFR: currentContent,
+      templateSubjectFR: currentSubject
+    });
+  } else {
+    this.templateEditForm.patchValue({
+      templateBodyEN: currentContent,
+      templateSubjectEN: currentSubject
+    });
+    this.emailTemplateForm.patchValue({
+      templateBodyEN: currentContent,
+      templateSubjectEN: currentSubject
+    });
+  }
+}
+
+// Method to switch between French and English SMS template editing
+switchSMSLanguage(language: string): void {
+  this.selectedSMSLanguage = language;
+  
+  // Update the SMS editor content based on selected language
+  if (language === 'fr') {
+    this.dataSMSBody = this.dataSMSBodyFR;
+  } else {
+    this.dataSMSBody = this.dataSMSBodyEN;
+  }
+  
+  this.smsTemplateForm.patchValue({
+    smsTemplateBody: this.dataSMSBody
+  });
+}
+
+// Method to save current SMS content to the appropriate language field
+saveCurrentSMSLanguageContent(language?: string): void {
+  const currentContent = this.smsTemplateForm.get('smsTemplateBody')?.value || '';
+  
+  if (language === 'fr') {
+    this.dataSMSBodyFR = currentContent;
+  } else {
+    this.dataSMSBodyEN = currentContent;
+  }
+}
+
 }

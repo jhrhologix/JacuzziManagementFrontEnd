@@ -13,6 +13,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { ImageApiService } from '../../../core/services/image-api.service';
 import { Subscription } from 'rxjs';
 import { ServiceCallService } from '../../admin/service-call/service-call.service';
 
@@ -81,6 +82,11 @@ dataSourceService: any[] = [];
   serviceCallData: any;
   technicianForm: FormGroup;
   visitStatusList: Array<{ id: number; name: string }> = [];
+  uploadImages = false;
+  showImage = false;
+  uploadingImage = false;
+  cloudinaryImages: Array<{publicId: string, url: string, uploadedBy: 'admin' | 'technician'}> = [];
+  @ViewChild(ClientDetailsComponent) clientDetailsComponent!: ClientDetailsComponent;
 
   onCompleteClick(event: Event) {
     
@@ -100,6 +106,7 @@ dataSourceService: any[] = [];
      private sanitizer: DomSanitizer,
      private router: Router,
      private servicecallservice : ServiceCallService,
+     private imageApiService: ImageApiService
   ) {
     this.technicianForm = this.fb.group({
       serviceCallNumber: [''],
@@ -642,6 +649,12 @@ loadTechnicianServiceCalls(): void {
         });
 
         console.log('Service call form values after patch:', this.serviceCallForm.value);
+        
+        // Enable photo uploads and load existing images from Cloudinary
+        this.uploadImages = true;
+        if (serviceCallData.numServiceCall) {
+          this.loadImagesForServiceCall(serviceCallData.numServiceCall);
+        }
       } else {
         console.warn('No service call data found in response');
       }
@@ -713,27 +726,47 @@ fetchPaymentMethods(): void {
 
 
 
-onFileChange(event: any): void {
+async onFileChange(event: any): Promise<void> {
+  const files: FileList = event.target.files;
+  if (!files || files.length === 0) return;
+
+  // Get service call number and username
+  const serviceCallNumber = this.serviceCallForm.get('serviceCallNumber')?.value || 'temp-' + Date.now();
+  const currentUsername = localStorage.getItem('username') || 'technician'; // Get from your auth service
   
-  const files: FileList = event.target.files; // Get the list of files
-  if (files && files.length > 0) {
-    this.selectedFiles = Array.from(files); // Convert FileList to an array
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif'];
-
-    // Validate each file's type
-    for (const file of this.selectedFiles) {
-      const fileType = file.type || this.getFileExtension(file.name);
-      if (!allowedTypes.includes(fileType)) {
-        alert(`Unsupported file type: ${file.name}. Please upload JPEG, PNG, or HEIC images.`);
-        return; // Stop further processing
+  this.uploadingImage = true;
+  
+  try {
+    for (const file of Array.from(files)) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.toaster.error(`Unsupported file type: ${file.name}`);
+        continue;
       }
-    }
 
-    // Process each valid file
-    this.selectedFiles.forEach(file => {
-      this.processFile(file);
-    });
+      // Upload to Cloudinary immediately with technician username
+      const result = await this.imageApiService.uploadImage(file, serviceCallNumber, currentUsername, 'technician');
+      
+      // No storage needed - images are in Cloudinary
+      
+      // Add to display array
+      this.cloudinaryImages.push({
+        publicId: result.publicId,
+        url: result.thumbnailUrl,
+        uploadedBy: 'technician'
+      });
+    }
+    
+    this.showImage = this.cloudinaryImages.length > 0;
+    this.toaster.success(`${files.length} image(s) uploaded successfully!`);
+    
+  } catch (error) {
+    console.error('Upload failed:', error);
+    this.toaster.error('Failed to upload images');
+  } finally {
+    this.uploadingImage = false;
+    event.target.value = ''; // Clear input
   }
 }
 getFileExtension(fileName: string): string {
@@ -770,11 +803,147 @@ processFile(file: File): void {
 
 // Method to remove the uploaded image and show the edit icon again
 removeImage(): void {
-  
   this.imagePreview = null;
   this.base64Image = null;
+  this.base64Images = [];  // Clear the array of base64 images
   this.visitForm.patchValue({ images: null });
   return;
+}
+
+  onImageClick(imageUrl: any): void {
+    this.selectedImageUrl = imageUrl; // Set the clicked image URL
+  }
+
+  getFormValidationErrors() {
+    const formErrors: any = {};
+    Object.keys(this.serviceCallForm.controls).forEach(key => {
+      const controlErrors = this.serviceCallForm.get(key)?.errors;
+      if (controlErrors) {
+        formErrors[key] = controlErrors;
+      }
+    });
+    return formErrors;
+  }
+
+  async deleteImage(imageData: {publicId: string, url: string, uploadedBy: string}, index: number): Promise<void> {
+    // Get current user info
+    const currentUsername = localStorage.getItem('username') || 'technician';
+    const isAdmin = false; // Technician page - can only delete own images
+    
+    // Check permissions - technicians can only delete their own images
+    if (!this.imageApiService.canDeleteImage(imageData.publicId, currentUsername, isAdmin)) {
+      this.toaster.error(
+        this.currentLanguage === 'fr' 
+          ? 'Vous ne pouvez supprimer que vos propres images' 
+          : 'You can only delete your own images'
+      );
+      return;
+    }
+    
+    const confirmMessage = this.currentLanguage === 'fr' 
+      ? 'Êtes-vous sûr de vouloir supprimer cette image ?'
+      : 'Are you sure you want to delete this image?';
+    
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      // Delete from Cloudinary immediately
+      await this.imageApiService.deleteImage(imageData.publicId);
+      
+      // No storage removal needed - images deleted from Cloudinary directly
+      
+      // Remove from local array
+      this.cloudinaryImages.splice(index, 1);
+      
+      // Hide image container if no images left
+      this.showImage = this.cloudinaryImages.length > 0;
+      
+      this.toaster.success(
+        this.currentLanguage === 'fr' ? 'Image supprimée avec succès!' : 'Image deleted successfully!'
+      );
+    } catch (error) {
+      console.error('Delete failed:', error);
+      this.toaster.error(
+        this.currentLanguage === 'fr' ? 'Erreur lors de la suppression' : 'Failed to delete image'
+      );
+    }
+  }
+
+  // Load existing images for a service call
+  async loadImagesForServiceCall(serviceCallNumber: string): Promise<void> {
+    if (!serviceCallNumber) return;
+    
+    try {
+      const images = await this.imageApiService.getImagesForServiceCall(serviceCallNumber);
+      this.cloudinaryImages = images.map(img => ({
+        publicId: img.publicId,
+        url: img.thumbnailUrl,
+        uploadedBy: img.uploadedBy || 'admin'
+      }));
+      
+      this.showImage = this.cloudinaryImages.length > 0;
+    } catch (error) {
+      console.error('Error loading images:', error);
+    }
+  }
+
+  // Check if current user can delete an image (technicians can only delete their own)
+  canDeleteImage(publicId: string): boolean {
+    const currentUsername = localStorage.getItem('username') || 'technician';
+    const isAdmin = false; // Technician page - restricted permissions
+    return this.imageApiService.canDeleteImage(publicId, currentUsername, isAdmin);
+  }
+
+loadImages(id: number): void {
+  // Skip loading images if serviceCallId is invalid or 0
+  if (!id || id === 0) {
+    console.log('Skipping image load - invalid serviceCallId:', id);
+    this.showImage = false;
+    return;
+  }
+  
+  // Images now loaded from Cloudinary - this method is deprecated
+  
+  this.servicecallservice.getImageById(id).subscribe(
+    (responses: { fileData: string; contentType: string }[]) => {
+      if(responses == null)
+      {
+        this.showImage = false;
+      }
+      this.showImage = true; // Ensure the image container is visible
+      this.imageUrls = []; // Clear previous images
+          // Images handled by Cloudinary - no flags needed // Reset deletion flag when loading fresh images
+
+      const processImage = (index: number) => {
+        if (index >= responses.length) {
+          return; // Stop when all images are processed
+        }
+
+        // Get the current response and create a Base64 data URL
+        const response = responses[index];
+        const base64DataUrl = `data:${response.contentType};base64,${response.fileData}`;
+
+        // Sanitize the URL
+        const sanitizedUrl = this.sanitizer.bypassSecurityTrustUrl(base64DataUrl);
+
+        // Show the sanitized URL
+        this.imageUrls.push(sanitizedUrl);
+
+        // Use setTimeout to simulate sequential loading
+        setTimeout(() => processImage(index + 1), 1000); // Adjust delay as needed
+      };
+
+      // Start processing the first image
+      processImage(0);
+    },
+    (error) => {
+      console.log('Error loading images for serviceCallId:', id, 'Error:', error.status);
+      if (error.status === 500 || error.status === 404) {
+        this.imageUrls = []; // Clear images if no images are found or service call doesn't exist
+        this.showImage = false;
+      }
+    }
+  );
 }
 
 convertFileToBase64(file: File): void {
@@ -792,6 +961,7 @@ convertFileToBase64(file: File): void {
 
   reader.readAsDataURL(file); // Read file as Base64
 }
+
 getClientDetailByVisitId(): void {
   console.log('Loading client details with clientId:', this.clientId);
   if (!this.clientId || this.clientId <= 0) {
@@ -860,69 +1030,102 @@ loadImage(id: number): void {
     }
   );
 }
-onImageClick(imageUrl: any): void {
-  this.selectedImageUrl = imageUrl; // Set the clicked image URL
-}
-showServicecall(element:any){
+
+showServicecall(element: any): void {
   console.log('Service call element:', element);
   const queryParams = {
     serviceCallId: element.serviceCallId || element.servicecallId
   };
-  console.log('Query params:', queryParams);
-  const encryptedParams = this.commonservice.encrypt(JSON.stringify(queryParams));
-  console.log('Encrypted params:', encryptedParams);
-  const baseUrl = `${window.location.origin}/#/` // Get the base URL of your app
-  const newUrl = this.router.serializeUrl(
-    this.router.createUrlTree(['/web/technician/servicecall-history'], {
-      queryParams: { id: encryptedParams },
-    })
-  );
-
-  // Open the full URL in a new tab
-  window.open(`${baseUrl}${newUrl}`, '_blank');
+  
+  this.router.navigate(['/web/technician/manage-technician'], { queryParams });
 }
 
-// Add ViewChild for client details component
-@ViewChild(ClientDetailsComponent) clientDetailsComponent!: ClientDetailsComponent;
-
 saveServiceCall(): void {
-  if (!this.serviceCallForm.valid) {
-    this.toaster.error('Please fill in all required fields', 'Error');
-    return;
-  }
+  if (this.serviceCallForm.valid) {
+    this.isLoading = true;
+    
+    const formData = this.serviceCallForm.value;
+    
+    // Use the same approach as admin component - use form.value directly
+    const requestModel: any = this.serviceCallForm.value;
+    
+    // Add required fields that aren't in the form
+    requestModel.serviceCallId = this.serviceCallId;
 
-  this.isLoading = true;
-  const requestModel = {
-    serviceCallId: this.serviceCallId,
-    serviceCallNumber: this.serviceCallForm.get('serviceCallNumber')?.value,
-    receptionDate: this.serviceCallForm.get('dateReception')?.value,
-    placementDate: this.serviceCallForm.get('datePlacement')?.value,
-    poolSpecialistId: this.serviceCallForm.get('poolSpecialist')?.value,
-    issueClassId: this.serviceCallForm.get('issue')?.value,
-    statusId: this.serviceCallForm.get('status')?.value,
-    description: this.serviceCallForm.get('description')?.value,
-    notes: this.serviceCallForm.get('notes')?.value,
-    comments: this.serviceCallForm.get('comments')?.value
-  };
-  
-  console.log('Saving service call:', requestModel);
+    
+    // Images are now handled separately via Cloudinary - no need to send image data
+    // Remove any old image properties
+    delete requestModel.images;
+    delete requestModel.clearExistingImages;
+    delete requestModel.imagesPath;
 
-  this.servicecallservice.updateServiceCall(requestModel).subscribe({
-    next: (response: any) => {
-      if (response?.isSuccess === true) {
-        this.toaster.success('Service call updated successfully', 'Success');
-        this.loadTechnicianServiceCalls(); // Reload the data
-      } else {
-        this.toaster.error(response?.message || 'Error updating service call', 'Error');
+    // Apply the same preprocessing as admin component
+    Object.keys(requestModel).forEach((key) => {
+      if (requestModel[key] === "") {
+        requestModel[key] = null;
+      } 
+      if (requestModel[key] === 0) {
+        requestModel[key] = null;
+      } 
+      if (key === "poolspecialist" && requestModel[key] !== null) {
+        requestModel[key] = requestModel[key].toString();
       }
-      this.isLoading = false;
-    },
-    error: (error: any) => {
-      console.error('Error updating service call:', error);
-      this.toaster.error(error?.message || 'Error updating service call', 'Error');
-      this.isLoading = false;
-    }
-  });
+      if (key === "issueproblem" && requestModel[key] !== null) {
+        requestModel[key] = requestModel[key].toString();
+      }
+      if (key === "spa" && requestModel[key] !== null) {
+        requestModel[key] = requestModel[key].toString();
+      }
+      if (key === "status" && requestModel[key] !== null) {
+        requestModel[key] = requestModel[key].toString();
+      }
+    });
+
+    console.log('Saving service call with full data:', requestModel);
+    console.log('Service call form valid:', this.serviceCallForm.valid);
+    console.log('Form errors:', this.getFormValidationErrors());
+
+    this.servicecallservice.updateServiceCall(requestModel).subscribe({
+      next: (response: any) => {
+        if (response?.isSuccess) {
+          this.toaster.success('Service call updated successfully');
+          
+          // Check if we need to reload images before resetting the flag
+          // Images handled by Cloudinary - no reload needed
+          
+          // Clear image preview after successful save
+          this.imagePreview = null;
+          this.removeImage();
+          this.loadServiceCallHistory();
+          
+          // Don't reload images if we deleted some - the current imageUrls array already shows the correct state
+          // if (shouldReloadImages) {
+          //   setTimeout(() => {
+          //     this.loadImages(this.serviceCallId);
+          //   }, 1000);
+          // }
+        } else {
+          this.toaster.error(response?.message || 'Failed to update service call');
+        }
+        this.isLoading = false;
+      },
+      error: (error: any) => {
+        console.error('Error updating service call:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.error);
+        console.error('Full error response:', JSON.stringify(error.error));
+        
+        if (error.status === 401) {
+          this.toaster.error('Authentication failed. Please log in again.', 'Unauthorized');
+        } else if (error.status === 400) {
+          this.toaster.error('Invalid data sent to server. Please check all fields.', 'Bad Request');
+        } else {
+          this.toaster.error(error?.message || 'Error updating service call', 'Error');
+        }
+        this.isLoading = false;
+      }
+    });
+  }
 }
 }
 

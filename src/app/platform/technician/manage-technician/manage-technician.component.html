@@ -3,8 +3,6 @@
         <div class="col-md-12">
             <div class="bg-white">
                 <h4> {{ 'Technician.TechnicianPage' | translate }}
-                  <button (click)="sendMail()" type="submit" class="btn btn-outline-primary"> {{ 'HEADER.Send_Notification' | translate }} </button>
-           
                 </h4>
                  </div>
         </div>
@@ -66,6 +64,65 @@
                   <textarea class="form-control" formControlName="notes" rows="3"></textarea>
                 </div>
               </div>
+              
+              <!-- Photo Upload Section -->
+              <div class="row mb-3">                 
+                <label for="image" class="form-label"> {{ 'SERVICE_CALL.UploadImages' | translate }}</label>
+                <div class="upload_divs">
+                  <div class="uploadimg">
+                    <input type="file" multiple formControlName="images" (change)="onFileChange($event)"  *ngIf="!imagePreview" 
+                    accept="image/jpeg, image/png, image/heic, image/heif" capture="environment" />
+                    <span class="upload_icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+                      </svg>
+                    </span>
+                  </div>
+                  <span>or</span>
+                  <div class="captureimg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16">
+                      <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4z"/>
+                      <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5m0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                    </svg>
+                  </div>
+                </div>
+                <div *ngIf="imagePreview" class="image-preview">
+                  <img [src]="imagePreview" alt="Image Preview" />
+                  <button *ngIf="imagePreview" (click)="removeImage()" class="close-btn">×</button>   
+                </div>
+              </div> 
+              
+              <!-- Display existing images -->
+              <label for="duree" class="form-label"> {{ 'SERVICE_CALL.ImageService' | translate }} </label>
+       <div class="row mb-3 custom-line-scroll">    
+         <div class="col-md-2 col-sm-4 mb-3" *ngFor="let imageData of cloudinaryImages; let i = index">
+           <br />
+           <!-- Thumbnail Image Container -->
+           <div class="position-relative d-inline-block">
+             <img 
+               [src]="imageData.url" 
+               alt="Service Call Image" 
+               class="img-fluid" 
+               data-bs-toggle="modal" 
+               data-bs-target="#image_servicecall" 
+               (click)="selectedImageUrl = imageData.url"
+               style="cursor: pointer; border-radius: 8px;"
+             />
+             <!-- Delete Button (only show for own images) -->
+             <button 
+               type="button" 
+               class="btn btn-danger btn-sm position-absolute top-0 end-0 translate-middle"
+               style="width: 20px; height: 20px; padding: 0; border-radius: 50%; font-size: 12px; line-height: 1;"
+               (click)="deleteImage(imageData, i); $event.stopPropagation()"
+               title="{{ 'SERVICE_CALL.DeleteImage' | translate }}"
+               *ngIf="canDeleteImage(imageData.publicId)"
+             >
+               ×
+             </button>
+           </div>
+         </div>
+       </div>
               <div class="text-end mt-4">
                 <button type="submit" class="btn btn-primary" (click)="saveServiceCall()">{{ 'HEADER.SAVE' | translate }}</button>
               </div>
@@ -268,5 +325,17 @@
 
     </div>
 
+    <!-- Image Modal -->
+    <div class="modal fade" id="image_servicecall" tabindex="-1" aria-labelledby="image_servicecall" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <button type="button" id="closemodal" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-body">
+            <!-- Display the Selected Image -->
+            <img [src]="selectedImageUrl" alt="Image" class="w-100">
+          </div>
+        </div>
+      </div>
+    </div>
 
 </section>

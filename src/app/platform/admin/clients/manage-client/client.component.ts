@@ -450,6 +450,13 @@ export class ClientComponent {
             // Store clientData for use after enabling form
             this.clientDataToPatch = { ...clientData };
             
+            // Debug logging for langPref
+            console.log('Client data langPref values:', {
+              langPref: clientData.langPref,
+              LangPref: clientData.LangPref,
+              rawClientData: clientData
+            });
+            
           } else {
             console.error('No client data available to display');
           }
@@ -468,7 +475,8 @@ export class ClientComponent {
               raisedSpa: this.clientDataToPatch.raisedSpa || false,
               ExternalBreaker: this.clientDataToPatch.IsExternalBreaker === true || this.clientDataToPatch.isExternalBreaker === true,
               sms: this.clientDataToPatch.SMS === true || this.clientDataToPatch.sms === true,
-              emailClient: this.clientDataToPatch.EmailClient === true || this.clientDataToPatch.emailClient === true
+              emailClient: this.clientDataToPatch.EmailClient === true || this.clientDataToPatch.emailClient === true,
+              langPref: this.clientDataToPatch.langPref || this.clientDataToPatch.LangPref || 'fr'
             });
             
             // Explicitly set SMS and EmailClient to false if they are null/undefined
@@ -482,7 +490,8 @@ export class ClientComponent {
             // Log the form values after patching
             console.log('Form values after patching:', {
               sms: this.clientForm.get('sms')?.value,
-              emailClient: this.clientForm.get('emailClient')?.value
+              emailClient: this.clientForm.get('emailClient')?.value,
+              langPref: this.clientForm.get('langPref')?.value
             });
             
             // Log the form value after patching
@@ -542,7 +551,8 @@ createformgroup(){
     ExternalBreaker: [{ value: false, disabled: true }],
     both : [{ value: false, disabled: true }],
     sms : [{ value: false, disabled: true }],
-    emailClient : [{ value: false, disabled: true }]
+    emailClient : [{ value: false, disabled: true }],
+    langPref : [{ value: 'fr', disabled: true }]
   });
 
   // Add value change subscription to log ExternalBreaker changes
@@ -1309,9 +1319,21 @@ onSubmit(){
   Object.keys(requestModel).forEach((key) => {
     if (requestModel[key] === "") {
       requestModel[key] = null;
-    } else if (typeof requestModel[key] === 'string') {
+    } else if (typeof requestModel[key] === 'string' && key !== 'langPref') {
       requestModel[key] = requestModel[key].toUpperCase();
     }
+  });
+  
+  // Ensure langPref is properly handled
+  if (requestModel.langPref) {
+    requestModel.langPref = requestModel.langPref.toLowerCase();
+  } else {
+    requestModel.langPref = 'fr'; // Default to French
+  }
+  
+  console.log('Request model with langPref:', {
+    langPref: requestModel.langPref,
+    fullRequest: requestModel
   });
   
   if(this.clientForm.valid){

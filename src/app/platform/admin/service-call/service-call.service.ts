@@ -29,7 +29,8 @@ export class ServiceCallService {
   createTechnicianDetailsUrl = 'api/ServiceCall/CreateTechnicianDetail'
   deletevisitdetailUrl='api/ServiceCall/DeleteVisitDetail?visitId='
   getEmailTemplateURL='api/EmailSechedule/GetEmailTemplate?templateId=';
-  addUpdateEmailTemplateURL='api/ServiceCall/SaveServiceCallEmailTemplate';
+  getEmailTemplateByLanguageURL='api/EmailSechedule/GetEmailTemplateByLanguage?templateId=';
+  addUpdateEmailTemplateURL='api/EmailSechedule/SaveMasterEmailTemplate';
   addsendEmailURL = 'api/ServiceCall/SendEmail'
   getImageURL='api/ServiceCall'
 
@@ -109,6 +110,10 @@ getTechnicianDeteilByid(id:number){
 }
 GetEmailTemplateByTemplateId(id: any){
   return this.httprequest.get(`${environment.apiUrl}/${this.getEmailTemplateURL}${id}`)
+}
+
+GetEmailTemplateByLanguage(id: any, language: string = 'BOTH'){
+  return this.httprequest.get(`${environment.apiUrl}/${this.getEmailTemplateByLanguageURL}${id}&language=${language}`)
 }
 AddUpdateEmailTemplate(model:any){
   return this.httprequest.post(`${environment.apiUrl}/${this.addUpdateEmailTemplateURL}`,model)
