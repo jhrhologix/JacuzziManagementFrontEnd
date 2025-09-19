@@ -4,6 +4,7 @@ import { CommonService } from '../../../../core/services/common.service';
 import { ServiceCallService } from '../service-call.service';
 import { SendingemailService } from '../../sending-email/sendingemail.service';
 import { ClientService } from '../../clients/client.service';
+import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -17,6 +18,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { ImageApiService } from '../../../../core/services/image-api.service';
+// import { environment } from '../../../../environments/environment';
 declare var window: any;
 
 @Component({
@@ -106,6 +108,7 @@ constructor(
     private sanitizer: DomSanitizer,
     private commonservice : CommonService,
     private clientService: ClientService,
+    private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private imageApiService: ImageApiService
 ){
@@ -126,6 +129,16 @@ ngOnInit(){
   this.clientId = this.data[0].clientId;
   this.newServiceCall = this.data[0].addnewservicecall;
   this.emilAddress= this.data[0].email;
+  
+  // Debug: Check what client data is available at initialization
+  console.log('🔍 ngOnInit - Component initialization:');
+  console.log('  - serviceCallId:', this.serviceCallId);
+  console.log('  - value:', this.value);
+  console.log('  - clientId from data[0]:', this.data[0].clientId);
+  console.log('  - this.clientId set to:', this.clientId);
+  console.log('  - newServiceCall:', this.newServiceCall);
+  console.log('  - emailAddress:', this.emilAddress);
+  console.log('  - Full data[0] object:', this.data[0]);
   
   // Always enable image uploads
   this.uploadImages = true;
@@ -157,6 +170,17 @@ ngOnChanges(changes: SimpleChanges) {
     this.servicecallnumber = this.data[0].serviceCallNumber;
     this.currentDate = new Date();
     this.currentDate = this.datePipe.transform(this.currentDate, 'yyyy-MM-dd')
+    
+    // Debug: Check what client data is available when data changes
+    console.log('🔍 ngOnChanges - Data input changed:');
+    console.log('  - serviceCallId:', this.serviceCallId);
+    console.log('  - value:', this.value);
+    console.log('  - clientId from data[0]:', this.data[0].clientId);
+    console.log('  - this.clientId set to:', this.clientId);
+    console.log('  - newServiceCall:', this.newServiceCall);
+    console.log('  - emailAddress:', this.emilAddress);
+    console.log('  - servicecallnumber:', this.servicecallnumber);
+    console.log('  - Full data[0] object in ngOnChanges:', this.data[0]);
     this.uploadImages = false;
     this.createformgroup();
     
@@ -255,11 +279,19 @@ getservicecallbyId(){
   
   //this.isservicecalleditdata=true;
   setTimeout(() => {
-    window.scrollTo(0, 500);
+    // Removed scroll action - let user stay where they are
+    // window.scrollTo(0, 500);
   this.servicecallservice.getservicecallbyid(this.serviceCallId).subscribe({
     next: (response:any) => {
       if(response){
         console.log('Service call response data:', response.value);
+        console.log('🔍 CRITICAL DEBUG - Service call response fields:');
+        console.log('  - spaId:', response.value.spaId);
+        console.log('  - clientId:', response.value.clientId);
+        console.log('  - idClient:', response.value.idClient);
+        console.log('  - ClientId:', response.value.ClientId);
+        console.log('  - All available fields:', Object.keys(response.value));
+        
         this.uploadImages = true;
         
         // Load images from Cloudinary using service call number
@@ -277,8 +309,15 @@ getservicecallbyId(){
           serviceCallNumber: response.value.serviceCallNumber,
           issueDescription: response.value.description,
           comments: response.value.comments,
-          notes: response.value.notes
+          notes: response.value.notes,
+          clientId: response.value.clientId // Now available from the fixed DTO!
         };
+        
+        // Update the component's clientId property with the now-available client ID
+        if (response.value.clientId) {
+          this.clientId = response.value.clientId;
+          console.log('✅ ClientId now set from service call response:', this.clientId);
+        }
         
         console.log('Updated data after service call load:', this.data[0]);
         
@@ -288,17 +327,14 @@ getservicecallbyId(){
           this.loadVisitDetails(this.visitId);
         }
         
-        // Load client details using the same pattern as the service call page
+        // Load client details using the now-available client ID
         if (this.clientId) {
-          console.log('Loading client details using clientId (client number):', this.clientId);
+          console.log('✅ Loading client details using clientId:', this.clientId);
           this.loadClientDetails(this.clientId);
         } else {
-          console.log('No clientId available. Available fields in service call response:', Object.keys(response.value));
-        // Try to get client details using spaId if available
-        if (response.value.spaId) {
-          console.log('Trying to get client details using spaId:', response.value.spaId);
-          this.loadClientDetailsByServiceCallId();
-        }
+          console.log('❌ No clientId available even after service call load');
+          console.log('Available fields in service call response:', Object.keys(response.value));
+          console.log('This should not happen anymore with the DTO fix');
         }
         
         this.createServiceCallForm.patchValue({
@@ -339,7 +375,10 @@ getnewservicecallid(){
 
   if(this.value == 'edit')
   {
-    this.isEditServicecall=false;
+    // Don't reset visit form visibility if we're currently editing a visit
+    if (!this.isEditTechniciancall && this.visitId === 0) {
+      this.isEditServicecall=false;
+    }
     this.isDisabled = false;
     this.getservicecallbyId();
     
@@ -441,6 +480,9 @@ onSubmit(){
   console.log('Form submission started');
   const requestModel: any = this.createServiceCallForm.value;
   const requestModel1 :any = this.createTechnicianForm.value;
+  
+  // Debug: Check if invoice is in the form data
+  console.log('🔍 INVOICE DEBUG - Invoice field value:', requestModel1.invoice);
 
   Object.keys(requestModel).forEach((key) => {
     if (requestModel[key] === "") {
@@ -481,7 +523,7 @@ onSubmit(){
 }
 
 if (requestModel1.durationTime) {
-    requestModel1.durationTime = this.formatTimeSpan(requestModel1.durationTime);
+    requestModel1.durationTime = this.formatDuration(requestModel1.durationTime);
 }
 if(this.createServiceCallForm.valid && this.createTechnicianForm.valid){
   console.log('Form is valid. Processing submission...');
@@ -506,7 +548,10 @@ if(this.createServiceCallForm.valid && this.createTechnicianForm.valid){
                 if(requestModel1.isClosed == true){
                   requestModel1.EmailTemplateId = 17;
                 }
+                console.log('🔍 Updating technician with invoice data:', requestModel1);
+                console.log('🔍 Invoice value being sent:', requestModel1.invoice);
                 this.servicecallservice.updatetechniciandetail(requestModel1).subscribe((response:any)=>{
+                  console.log('🔍 Update technician response:', response);
                   if(Response.isSuccess == true)
                   {
                     
@@ -526,7 +571,8 @@ if(this.createServiceCallForm.valid && this.createTechnicianForm.valid){
                   if(Response.isSuccess == true)
                   {
                     this.getservicecallbyId();
-                    this.addnewvisit = '';
+                    // Keep visit visible after save - don't clear addnewvisit
+                    // this.addnewvisit = ''; // REMOVED - keep visit visible
                     // Images handled by Cloudinary - no action needed
                     this.removeImage();
                     this.gettechniciandetail();
@@ -591,7 +637,8 @@ if(this.createServiceCallForm.valid && this.createTechnicianForm.valid){
                   if(Response.isSuccess == true)
                   {
                     this.getservicecallbyId();
-                    this.addnewvisit = '';
+                    // Keep visit visible after save - don't clear addnewvisit
+                    // this.addnewvisit = ''; // REMOVED - keep visit visible
                     // Images handled by Cloudinary - no action needed
                     this.removeImage();
                     this.gettechniciandetail();
@@ -649,6 +696,36 @@ private formatTimeSpan(time: string): string {
   }
   return time;
 }
+
+private formatDuration(duration: string): string {
+  if (!duration) return '';
+  
+  // If it's already in HH:MM format without AM/PM, return as is
+  if (duration.match(/^\d{1,2}:\d{2}$/) && !duration.includes('AM') && !duration.includes('PM')) {
+    return duration;
+  }
+  
+  // If it contains AM/PM, convert to 24-hour format and treat as duration
+  if (duration.includes('AM') || duration.includes('PM')) {
+    try {
+      const date = new Date('1970-01-01 ' + duration);
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      return `${hours}:${minutes.toString().padStart(2, '0')}`;
+    } catch (error) {
+      console.log('Error formatting duration:', error);
+      return duration;
+    }
+  }
+  
+  // If it's a datetime string, extract just the time part
+  if (duration.includes(' ')) {
+    const [date, timePart] = duration.split(' ');
+    return this.formatDuration(timePart);
+  }
+  
+  return duration;
+}
 gettechniciandetail() {
   this.isLoading = true;
   this.servicecallservice.getTechnicianDetails(this.serviceCallId).subscribe(
@@ -657,11 +734,11 @@ gettechniciandetail() {
         this.isLoading = false;
         this.datasource = response.value;
         
-        // Format times consistently
+        // Format times and durations consistently
         this.datasource = this.datasource.map(item => ({
           ...item,
           hourVisit: this.formatTimeSpan(item.hourVisit),
-          durationTime: this.formatTimeSpan(item.durationTime)
+          durationTime: this.formatDuration(item.durationTime)
         }));
       }
     }
@@ -710,7 +787,13 @@ editTechnician(id:number){
       tps: response.value[0].tps ,
       tvq: response.value[0].tvq ,
       grandtotal: response.value[0].grandTotal ,
+      invoice: response.value[0].invoice || '' // Add invoice field
     });
+    
+    // Debug: Confirm invoice field is being set
+    console.log('🔍 INVOICE FIELD DEBUG - Setting invoice in form:', response.value[0].invoice);
+    console.log('🔍 INVOICE FIELD DEBUG - Form value after patch:', this.createTechnicianForm.get('invoice')?.value);
+    
   if(response.value[0].paymentMethod > 0){
     this.showSecondCheckbox = true;
   }
@@ -1132,7 +1215,39 @@ sendWorkOrder(){
     this.toaster.error('Client contact information is required to send work order');
     return;
   }
+
+  // Always reload client details to ensure we have current client data
+  console.log('🔍 Current clientId in data:', this.data[0]?.clientId);
+  console.log('🔍 Expected clientId for this service call:', this.data[0]?.serviceCallId);
+  console.log('🔍 Component clientId property:', this.clientId);
+  console.log('🔍 All available properties in data[0]:', Object.keys(this.data[0] || {}));
+  console.log('🔍 Full data[0] object at work order time:', this.data[0]);
   
+  // Force reload client details to get fresh data
+  if (this.data[0]?.spaId) {
+    console.log('🔍 Reloading client details by spaId:', this.data[0].spaId);
+    this.loadClientDetailsBySpaId(this.data[0].spaId);
+    // Wait a moment for the client details to load, then proceed
+    setTimeout(() => {
+      console.log('🔍 Client details reloaded, clientId now:', this.data[0]?.clientId);
+      console.log('🔍 Client SMS preference after reload:', this.data[0]?.sms);
+      console.log('🔍 Client phone numbers after reload:', {
+        home: this.data[0]?.home,
+        work: this.data[0]?.work,
+        spouse: this.data[0]?.spouse,
+        other: this.data[0]?.other
+      });
+      this.sendWorkOrderEmail();
+    }, 2000); // Increased timeout to ensure data is loaded
+    return;
+  } else {
+    console.log('🔍 No spaId available, cannot reload client details');
+  }
+  
+  this.sendWorkOrderEmail();
+}
+
+private sendWorkOrderEmail(): void {
   console.log('Sending work order with:', { visitId: this.visitId, templateId: this.templateId, email: this.emilAddress });
   
   // Get form data for template variables
@@ -1146,15 +1261,30 @@ sendWorkOrder(){
   console.log('Client language preference from profile:', this.data[0]?.langPref);
   console.log('Client language preferences being sent:', clientLanguagePreferences);
   
+  // Debug SMS configuration
+  console.log('🔍 SMS Configuration Debug:');
+  console.log('  - Client SMS preference:', this.data[0]?.sms);
+  console.log('  - SMS will be sent:', this.data[0]?.sms === true);
+  console.log('  - EmailClient preference:', this.data[0]?.emailClient);
+  console.log('  - Email will be sent:', this.data[0]?.emailClient === true);
+  console.log('  - Mobile number for SMS:', this.getMobileNumberForSMS());
+  console.log('  - Client ID loaded:', this.data[0]?.clientId);
+  console.log('  - Client data loaded properly:', !!this.data[0]?.firstName);
+  
+  // If client data is not loaded properly, don't send SMS
+  if (!this.data[0]?.clientId || !this.data[0]?.firstName) {
+    console.log('⚠️ Client data not loaded properly, SMS may not work correctly');
+  }
+  
   // Use EmailSendService like the working admin send-email page
   const requestModel = {
     masterEmailTemplateId: this.templateId,
     masterSMSTemplateId: this.templateId, // Use the same template ID as email for work orders
     recipients: [this.emilAddress], // Email address for work order
     visitDate: formData.datePlacement || "2025-05-23", // Use actual visit date from form
-    sms: [this.data[0]?.sms || false], // Use client SMS preference
-    emailClient: [this.data[0]?.emailClient ?? false], // Use client email preference
-    mobileNumber: this.data[0]?.streetNumber ? [this.data[0].streetNumber] : [], // Include mobile number if available
+    sms: [this.data[0]?.sms === true], // Only send SMS if explicitly true
+    emailClient: [this.data[0]?.emailClient === true], // Only send email if explicitly true
+    mobileNumber: this.getMobileNumberForSMS(), // Get proper mobile number for SMS
     clientLanguagePreferences: clientLanguagePreferences, // Include language preferences
     clientId: this.data[0]?.clientId || 0, // Include client ID for template data (use actual client ID from data)
     serviceCallId: this.data[0]?.serviceCallId, // Include service call ID for template data
@@ -1169,7 +1299,7 @@ sendWorkOrder(){
     notes: this.data[0]?.comments || this.data[0]?.notes || "N/A",
     // Pass visit data for template variables - try form data first, then data[0]
     technicianName: this.getTechnicianName(this.createTechnicianForm.value.technician) || this.data[0]?.technicianName || "N/A",
-    duration: this.createTechnicianForm.value.durationnextVisit || this.data[0]?.duration || "N/A",
+    duration: this.createTechnicianForm.value.durationTime || this.data[0]?.duration || "N/A",
     isCompleted: this.createTechnicianForm.value.complete || this.data[0]?.isCompleted || false,
     isPaid: this.createTechnicianForm.value.payment || this.data[0]?.isPaid || false,
     paymentMethod: this.getPaymentMethodName(this.createTechnicianForm.value.paymentMethod) || this.data[0]?.paymentMethod || "N/A",
@@ -1193,6 +1323,13 @@ sendWorkOrder(){
   
   console.log('EmailSendService request model:', requestModel);
   console.log('EmailSendService request model JSON:', JSON.stringify(requestModel, null, 2));
+  console.log('🔍 DEBUG: emailClient flag is set to:', requestModel.emailClient);
+  console.log('🔍 DEBUG: Raw client emailClient preference:', this.data[0]?.emailClient);
+  console.log('🔍 DEBUG: Raw client sms preference:', this.data[0]?.sms);
+  console.log('🔍 DEBUG: All available client properties:', Object.keys(this.data[0] || {}));
+  console.log('🔍 DEBUG: Client emailSend property:', this.data[0]?.emailSend);
+  console.log('🔍 DEBUG: Client spaId (should trigger client loading):', this.data[0]?.spaId);
+  console.log('🔍 DEBUG: Client clientId (should not be 0):', this.data[0]?.clientId);
   
   this.sendingEmailService.SendEmailConfirmation(requestModel).subscribe({
     next: (response: any) => {
@@ -1355,6 +1492,11 @@ loadClientDetails(clientId: number): void {
         console.log('Available fields in client data:', Object.keys(clientData || {}));
         
         // Update the client data with the fetched details using the same pattern
+        console.log('🔍 BEFORE UPDATE - Current clientId:', this.data[0]?.clientId);
+        console.log('🔍 BEFORE UPDATE - New clientId from API:', clientData.clientId);
+        console.log('🔍 BEFORE UPDATE - emailClient from API:', clientData.emailClient);
+        console.log('🔍 BEFORE UPDATE - sms from API:', clientData.sms);
+        
         this.data[0] = {
           ...this.data[0],
           clientId: clientData.clientId,
@@ -1367,6 +1509,10 @@ loadClientDetails(clientId: number): void {
           streetNumber: clientData.streetNumber || clientData.mobileNumber || clientData.phoneNumber || clientData.phone || clientData.cellPhone || clientData.mobile,
           langPref: clientData.langPref || 'fr' // Get client's language preference (default to French)
         };
+        
+        console.log('🔍 AFTER UPDATE - clientId:', this.data[0]?.clientId);
+        console.log('🔍 AFTER UPDATE - emailClient:', this.data[0]?.emailClient);
+        console.log('🔍 AFTER UPDATE - sms:', this.data[0]?.sms);
         console.log('Updated client data with details:', this.data[0]);
         console.log('Client data mapping - clientId:', clientData.clientId, 'clientNumber:', clientData.clientNumber, 'firstName:', clientData.firstName, 'lastName:', clientData.lastName);
         console.log('Mobile number sources - streetNumber:', clientData.streetNumber, 'mobileNumber:', clientData.mobileNumber, 'phoneNumber:', clientData.phoneNumber, 'phone:', clientData.phone, 'cellPhone:', clientData.cellPhone, 'mobile:', clientData.mobile);
@@ -1382,11 +1528,79 @@ loadClientDetails(clientId: number): void {
   loadClientDetailsByServiceCallId(): void {
     console.log('Loading client details by service call ID:', this.serviceCallId);
     
-    // For now, let's try to get client details using the known client ID
-    // The actual client ID is 16506 based on your database
-    const knownClientId = 16506;
-    console.log('Using known client ID for testing:', knownClientId);
-    this.loadClientDetails(knownClientId);
+    // First, get the client ID from the service call ID using spa details
+    this.servicecallservice.getspadetailsByServiceCallId(this.serviceCallId).subscribe({
+      next: (spaResponse: any) => {
+        console.log('Spa details response from service call ID:', spaResponse);
+        
+        if (spaResponse && spaResponse.isSuccess && spaResponse.value && spaResponse.value.length > 0) {
+          const spaData = spaResponse.value[0];
+          console.log('Spa data from service call ID:', spaData);
+          console.log('Available fields in spa data:', Object.keys(spaData || {}));
+          
+          // Extract client ID from spa data (it should be in the Id field)
+          const clientId = spaData.Id;
+          console.log('Extracted client ID from spa data:', clientId);
+          
+          if (clientId) {
+            // Now get full client details using the client service
+            this.clientService.getClientById(clientId).subscribe({
+              next: (clientResponse: any) => {
+                console.log('Full client details response:', clientResponse);
+                console.log('Client response isSuccess:', clientResponse?.isSuccess);
+                console.log('Client response value:', clientResponse?.value);
+                
+                if (clientResponse && clientResponse.isSuccess && clientResponse.value && clientResponse.value.length > 0) {
+                  const clientData = clientResponse.value[0];
+                  console.log('Full client data:', clientData);
+                  console.log('Available fields in client data:', Object.keys(clientData || {}));
+                  
+                  // Update the client data with the fetched details
+                  console.log('🔍 BEFORE UPDATE - Current clientId:', this.data[0]?.clientId);
+                  console.log('🔍 BEFORE UPDATE - New clientId from API:', clientData.clientId);
+                  console.log('🔍 BEFORE UPDATE - firstName from API:', clientData.firstName);
+                  console.log('🔍 BEFORE UPDATE - lastName from API:', clientData.lastName);
+                  console.log('🔍 BEFORE UPDATE - emailClient from API:', clientData.emailClient);
+                  console.log('🔍 BEFORE UPDATE - sms from API:', clientData.sms);
+                  
+                  this.data[0] = {
+                    ...this.data[0],
+                    clientId: clientData.clientId || clientData.idClient,
+                    clientNumber: clientData.clientNumber || clientData.numClient,
+                    firstName: clientData.firstName,
+                    lastName: clientData.lastName,
+                    email: clientData.primaryEmail || clientData.email || this.data[0]?.email,
+                    sms: clientData.sms,
+                    emailClient: clientData.emailClient,
+                    streetNumber: clientData.streetNumber || clientData.mobileNumber || clientData.phoneNumber || clientData.phone || clientData.cellPhone || clientData.mobile,
+                    langPref: clientData.langPref || 'fr'
+                  };
+                  
+                  console.log('🔍 AFTER UPDATE - clientId:', this.data[0]?.clientId);
+                  console.log('🔍 AFTER UPDATE - firstName:', this.data[0]?.firstName);
+                  console.log('🔍 AFTER UPDATE - lastName:', this.data[0]?.lastName);
+                  console.log('🔍 AFTER UPDATE - emailClient:', this.data[0]?.emailClient);
+                  console.log('🔍 AFTER UPDATE - sms:', this.data[0]?.sms);
+                  console.log('Updated client data with full details:', this.data[0]);
+                } else {
+                  console.log('No full client data found for client ID:', clientId);
+                }
+              },
+              error: (clientError) => {
+                console.log('Error loading full client details:', clientError);
+              }
+            });
+          } else {
+            console.log('No client ID found in spa data');
+          }
+        } else {
+          console.log('No spa data found for service call ID:', this.serviceCallId);
+        }
+      },
+      error: (spaError) => {
+        console.log('Error loading spa details by service call ID:', spaError);
+      }
+    });
   }
 
   getTechnicianName(technicianId: any): string {
@@ -1401,79 +1615,105 @@ loadClientDetails(clientId: number): void {
     return paymentMethod ? paymentMethod.paymentMethodName : "N/A";
   }
 
+  getMobileNumberForSMS(): string[] {
+    // Try to get mobile number from various phone fields in order of preference
+    const clientData = this.data[0];
+    if (!clientData) return [];
+
+    // Check different phone number fields in order of preference
+    // streetNumber is the primary phone field based on console logs
+    const mobileNumber = clientData.streetNumber || clientData.StreetNumber ||
+                        clientData.home || clientData.Home || 
+                        clientData.work || clientData.Work || 
+                        clientData.spouse || clientData.Spouse || 
+                        clientData.other || clientData.Other;
+
+    console.log('🔍 SMS Mobile Number Check:');
+    console.log('  - streetNumber:', clientData.streetNumber || clientData.StreetNumber);
+    console.log('  - home:', clientData.home || clientData.Home);
+    console.log('  - work:', clientData.work || clientData.Work);
+    console.log('  - spouse:', clientData.spouse || clientData.Spouse);
+    console.log('  - other:', clientData.other || clientData.Other);
+    console.log('  - Selected mobile number:', mobileNumber);
+
+    return mobileNumber ? [mobileNumber] : [];
+  }
+
   loadClientDetailsBySpaId(spaId: number): void {
     console.log('Loading client details by spaId:', spaId);
     console.log('Current data[0] before loading client details:', this.data[0]);
     
-    // Try to get client details using the spaId through the client service
-    this.clientService.getSpaDetails(spaId).subscribe({
+    // Try to get client data from the parent service call page form
+    // The parent component should have the client form filled when a client is selected
+    console.log('🔍 Trying to get client data from parent service call page');
+    
+    // Check if we can access the parent component's client data
+    // The clientId should be available from the parent component
+    if (this.clientId && this.clientId > 0) {
+      console.log('🔍 Found clientId from parent component:', this.clientId);
+      
+      // Use the existing loadClientDetails method that works
+      this.loadClientDetails(this.clientId);
+    } else {
+      console.log('🔍 No clientId from parent, checking if client data is in input');
+      
+      // Check if client data was passed through the data input
+      if (this.data && this.data[0] && this.data[0].clientId && this.data[0].clientId > 0) {
+        console.log('🔍 Found clientId in input data:', this.data[0].clientId);
+        this.loadClientDetails(this.data[0].clientId);
+      } else {
+        console.log('❌ No client data available - client must be selected first');
+      }
+    }
+  }
+
+  private fallbackToSpaMapping(): void {
+    console.log('🔍 No client data available - this should not happen in normal operation');
+    console.log('🔍 Please ensure a client is selected before creating/editing service calls');
+    console.log('❌ Cannot send work order notifications without client data');
+  }
+
+  private loadFullClientDetails(clientId: number): void {
+    console.log('🔍 Loading full client details for client ID:', clientId);
+    
+    // Use the existing client service to get real client data
+    console.log('🔍 Using client service to get real client data for ID:', clientId);
+    
+    this.clientService.getClientById(clientId).subscribe({
       next: (response: any) => {
-        console.log('Spa details response from client service:', response);
-        console.log('Response isSuccess:', response?.isSuccess);
-        console.log('Response value:', response?.value);
-        console.log('Response Value (capital V):', response?.Value);
+        console.log('🔍 Client service response:', response);
         
-        if (response && (response.isSuccess || response.value)) {
-          const spaData = response.value || response.Value;
-          console.log('Spa data from client service:', spaData);
-          console.log('Available fields in spa data:', Object.keys(spaData || {}));
-          console.log('Full spa data object:', JSON.stringify(spaData, null, 2));
+        if (response && response.isSuccess && response.value && response.value.length > 0) {
+          const clientData = response.value[0];
+          console.log('🔍 Client data from service:', clientData);
+          console.log('🔍 Available fields:', Object.keys(clientData || {}));
           
-          // If we have client info in the spa data, use it
-          if (spaData && (spaData.clientId || spaData.firstName || spaData.lastName)) {
-            console.log('Found client info in spa data, updating this.data[0]');
-            this.data[0] = {
-              ...this.data[0],
-              clientId: spaData.clientId,
-              clientNumber: spaData.clientNumber,
-              firstName: spaData.firstName,
-              lastName: spaData.lastName,
-              email: spaData.email || this.data[0]?.email,
-              sms: spaData.sms,
-              emailClient: spaData.emailClient,
-              streetNumber: spaData.streetNumber || spaData.mobileNumber || spaData.phoneNumber || spaData.phone || spaData.cellPhone || spaData.mobile,
-              langPref: spaData.langPref || 'fr' // Get client's language preference (default to French)
-            };
-            console.log('Updated client data with spa details from client service:', this.data[0]);
-          } else {
-            console.log('No client info found in spa data, trying fallback method');
-            // Fallback to the original service call service
-            this.servicecallservice.getspadetailsByServiceCallId(this.serviceCallId).subscribe({
-              next: (response: any) => {
-                console.log('Fallback spa details response:', response);
-                if (response && response.value && response.value.length > 0) {
-                  const spaData = response.value[0];
-                  console.log('Fallback spa data:', spaData);
-                  console.log('Available fields in fallback spa data:', Object.keys(spaData || {}));
-                  this.data[0] = {
-                    ...this.data[0],
-                    clientId: spaData.clientId,
-                    clientNumber: spaData.clientNumber,
-                    firstName: spaData.firstName,
-                    lastName: spaData.lastName,
-                    email: spaData.email || this.data[0]?.email,
-                    sms: spaData.sms,
-                    emailClient: spaData.emailClient,
-                    streetNumber: spaData.streetNumber || spaData.mobileNumber || spaData.phoneNumber || spaData.phone || spaData.cellPhone || spaData.mobile,
-                    langPref: spaData.langPref || 'fr' // Get client's language preference (default to French)
-                  };
-                  console.log('Updated client data with fallback spa details:', this.data[0]);
-                } else {
-                  console.log('No data in fallback response');
-                }
-              },
-              error: (error) => {
-                console.log('Error loading fallback spa details:', error);
-              }
-            });
-          }
+          // Update the client data with the fetched details
+          this.data[0] = {
+            ...this.data[0],
+            clientId: clientData.clientId || clientData.idClient || clientId,
+            clientNumber: clientData.clientNumber || clientData.numClient,
+            firstName: clientData.firstName,
+            lastName: clientData.lastName,
+            email: clientData.primaryEmail || clientData.email || this.data[0]?.email,
+            sms: clientData.sms,
+            emailClient: clientData.emailClient,
+            streetNumber: clientData.streetNumber,
+            langPref: clientData.langPref || 'fr',
+            // Map all phone fields for SMS
+            home: clientData.home,
+            work: clientData.work,
+            spouse: clientData.spouse,
+            other: clientData.other
+          };
+          
+          console.log('✅ Client data updated from service:', this.data[0]);
         } else {
-          console.log('No valid response from spa details API');
+          console.log('❌ No client data returned from service');
         }
       },
       error: (error) => {
-        console.log('Error loading spa details from client service:', error);
-        console.log('Error details:', error);
+        console.log('❌ Error loading client data from service:', error);
       }
     });
   }

@@ -319,7 +319,9 @@
 
             <div class="col-md-2 mb-3">
                 <label for="duree" class="form-label"> {{ 'SERVICE_CALL.Duration' | translate }} </label>
-                <input type="time" [attr.min]="minDurationTime" formControlName="durationTime" class="form-control" id="duree">
+                <input type="text" formControlName="durationTime" class="form-control" id="duree" 
+                       placeholder="HH:MM" pattern="^([0-9]|[01][0-9]|2[0-3]):[0-5][0-9]$"
+                       title="Enter duration in HH:MM format (e.g., 2:30 for 2 hours 30 minutes)">
             </div>
 
             <!-- <div class="col-md-2 mb-3">
@@ -413,7 +415,9 @@
                 </div>
                 <div class="col-md-3 mb-3">
                     <label for="duree" class="form-label"> {{ 'SERVICE_CALL.NextVisit' | translate }} </label>
-                    <input type="time" formControlName="durationnextVisit" class="form-control" id="duree">
+                    <input type="text" formControlName="durationnextVisit" class="form-control" id="duree"
+                           placeholder="HH:MM" pattern="^([0-9]|[01][0-9]|2[0-3]):[0-5][0-9]$"
+                           title="Enter next visit duration in HH:MM format (e.g., 1:30 for 1 hour 30 minutes)">
                 </div>
                 <!-- <div class="col-md-3 mb-3" *ngIf="imageUrl">
                     <label for="duree" class="form-label"> {{ 'SERVICE_CALL.ImageService' | translate }} </label>
