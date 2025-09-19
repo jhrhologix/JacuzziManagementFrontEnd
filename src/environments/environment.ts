@@ -9,5 +9,6 @@ export const environment = {
      uploadPreset: 'jacuzzi_unsigned',
      apiKey: '663289219335958',
      apiSecret: 'JIL5yTTirrq1TfzVA5fEIv4OwvY' // Only for admin API calls, never exposed to end users
-   }
+   },
+   encryptionKey: '89e22b8d9e6a3b25cb03211576464d0eebf0e5f3c9c246493eb889e4eedd195a' // New secure key - consider moving to server-side
  };

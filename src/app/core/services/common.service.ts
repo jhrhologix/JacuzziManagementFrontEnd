@@ -13,7 +13,7 @@ export class CommonService {
   private languageChangeSubject = new BehaviorSubject<string>('fr'); // Default language is 'fr'
   languageChange$ = this.languageChangeSubject.asObservable();
   private loadingStateSubject = new BehaviorSubject<boolean>(false);
-  private secretKey = 'JKDKJHKHKJJLK8937204034HAJKDAKSDJAHKALSHDKLOIE'; 
+  private secretKey = environment.encryptionKey; 
 constructor(private http: HttpClient,private translate: TranslateService) {
 
 this.translate.setDefaultLang('fr');
