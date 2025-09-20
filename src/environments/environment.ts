@@ -1,7 +1,16 @@
 export const environment = {
-   production: true,
+   // IMPORTANT: For PRODUCTION builds, set production: true and use production API URL
+   production: true,  // Set to false for development builds
+   
+   // PRODUCTION API URL (for live deployment)
    apiUrl: 'https://jacuzzimanagement.rhologix.com/Backend',
+   
+   // DEVELOPMENT API URL (for local testing) - uncomment and comment out production URL above
+   //apiUrl: 'https://localhost:7159',
+   
+   // STAGING API URL (backup option)
    //apiUrl:'https://ms.stagingsdei.com:4101',       
+   
    pageSizeList: [5, 10, 25, 50],
    defaultPageSize: 50,
    cloudinary: {

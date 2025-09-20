@@ -1,0 +1,60 @@
+[33mcommit a59993d9755b268d86d8057e6ff920f0d084757c[m
+Author: jhegyesy <jhegyesy@rhologix.com>
+Date:   Tue Sep 16 23:12:09 2025 -0400
+
+    Implement Cloudinary image management integration
+    
+    - Replace complex server-side image handling with Cloudinary cloud service
+    - Add ImageApiService for direct Cloudinary API interactions (upload/delete)
+    - Update admin and technician components to use immediate upload/delete
+    - Implement permission-based deletion (admin: all images, technician: own images)
+    - Add image naming convention: servicecall_username_date_timestamp
+    - Remove complex database image path management and physical file handling
+    - Fix character encoding issues in SMS (French accents)
+    - Add language preference support (default to French)
+    - Update template editing for email/SMS with bilingual support
+    - Sort service provider lists alphabetically
+    - Add language column to client list
+    - Fix notification template editing in admin calendar
+    - Remove send notification button from technician page
+    - Update translation labels and UI improvements
+
+CLOUDINARY_INTEGRATION_EXAMPLE.md
+CLOUDINARY_SETUP.md
+CREATE_UPLOAD_PRESET.md
+SIMPLE_CLOUDINARY_INTEGRATION.md
+add-existing-images.js
+create-upload-preset.js
+"ersjhegysourcereposJacuzzimanagementJacuzziManagementBackend-development\357\200\242; git branch"
+package-lock.json
+package.json
+src/app/admin/sending-email/sending-email.component.ts
+src/app/auth/login/login.component.ts
+src/app/core/services/cloudinary.service.ts
+src/app/core/services/common.service.ts
+src/app/core/services/image-api.service.ts
+src/app/platform/admin/calendar/calendar.component.html
+src/app/platform/admin/calendar/calendar.component.ts
+src/app/platform/admin/calendar/calendar.service.ts
+src/app/platform/admin/clients/manage-client/client.component.html
+src/app/platform/admin/clients/manage-client/client.component.ts
+src/app/platform/admin/sending-email/sending-email.component.html
+src/app/platform/admin/sending-email/sending-email.component.scss
+src/app/platform/admin/sending-email/sending-email.component.ts
+src/app/platform/admin/sending-email/sendingemail.service.ts
+src/app/platform/admin/service-call/add-service-call/add-service-call.component.html
+src/app/platform/admin/service-call/add-service-call/add-service-call.component.ts
+src/app/platform/admin/service-call/service-call.service.ts
+src/app/platform/admin/service-call/service-call/service-call.component.html
+src/app/platform/main-containor.component.html
+src/app/platform/main-containor.component.ts
+src/app/platform/technician/manage-technician/manage-technician.component.html
+src/app/platform/technician/manage-technician/manage-technician.component.ts
+src/app/platform/technician/spa-details/spa-details.component.ts
+src/app/platform/technician/technician-visit-details/visit.service.ts
+src/assets/i18n/en.json
+src/assets/i18n/fr.json
+src/environments/environment.development.ts
+src/environments/environment.prod.ts
+src/environments/environment.ts
+temp_original.html
