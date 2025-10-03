@@ -422,7 +422,14 @@ getissuedescription(){
   this.servicecallservice.getissuedescription().subscribe((response:any)=>{
     if(response)
     {
-       this.issuedescription = response.value
+       // Issue #9: Sort visit reasons alphabetically
+       // Sort by 'value' (French) for French, 'name' (English) for English
+       this.issuedescription = response.value.sort((a: any, b: any) => {
+         const sortField = this.currentLanguage === 'fr' ? 'value' : 'name';
+         const aValue = a[sortField] || '';
+         const bValue = b[sortField] || '';
+         return aValue.localeCompare(bValue);
+       });
     }
   })
 }
@@ -766,6 +773,11 @@ editTechnician(id:number){
     this.servicecallservice.getTechnicianDeteilByid(id).subscribe((response:any)=>{
   if(response){
     
+    // Issue #12: Check if payment method exists
+    const hasPaymentMethod = response.value[0].paymentMethod != null && 
+                             response.value[0].paymentMethod !== '' && 
+                             response.value[0].paymentMethod !== 0;
+    
     this.createTechnicianForm.patchValue({
       technician: response.value[0].technician , // Default to empty string if not available
       dateVisit: this.formatDate(response.value[0].dateOfVisit),
@@ -778,7 +790,7 @@ editTechnician(id:number){
       bloquerTech: response.value[0].isDroppable , 
       techniciancomments: response.value[0].technicianComments , 
       notes: response.value[0].notes , 
-      payment :!!response.value[0].paymentMethod,
+      payment: hasPaymentMethod,  // Issue #12: Set based on payment method existence
       paymentMethod: response.value[0].paymentMethod ,
       missingParts: response.value[0].missingParts ,
       sPieces: response.value[0].sPieces ,
@@ -794,9 +806,14 @@ editTechnician(id:number){
     console.log('🔍 INVOICE FIELD DEBUG - Setting invoice in form:', response.value[0].invoice);
     console.log('🔍 INVOICE FIELD DEBUG - Form value after patch:', this.createTechnicianForm.get('invoice')?.value);
     
-  if(response.value[0].paymentMethod > 0){
-    this.showSecondCheckbox = true;
-  }
+    // Issue #12: Show payment method dropdown if payment method exists
+    if(hasPaymentMethod){
+      this.showSecondCheckbox = true;
+      console.log('Payment method exists in admin, showing dropdown. Method ID:', response.value[0].paymentMethod);
+    } else {
+      this.showSecondCheckbox = false;
+      console.log('No payment method in admin, hiding dropdown');
+    }
   this.emilAddress = response.value[0].email;
   }
     })

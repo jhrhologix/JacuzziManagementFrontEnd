@@ -1,0 +1,52 @@
+// Phone field styling for click-to-dial functionality
+.phone-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  
+  .phone-input {
+    padding-right: 45px; // Make room for the dial button
+    background-color: #f8f9fa; // Light background for readonly field
+    cursor: default;
+  }
+  
+  .phone-dial-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%); // Green gradient
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    
+    i {
+      font-size: 16px;
+    }
+    
+    &:hover {
+      background: linear-gradient(135deg, #218838 0%, #1ea87a 100%); // Darker green on hover
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transform: translateY(-50%) scale(1.1);
+    }
+    
+    &:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+  }
+}
+
+// Ensure form-control doesn't override the readonly styling
+.form-control[readonly].phone-input {
+  background-color: #f8f9fa;
+  opacity: 1;
+}
+

@@ -140,7 +140,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges {
       clientName: [''],
       lastName: [''],
       apartNo: [''],
-      streetNumber: [''],
+      civic: [''],
+      streetNumber: [''],  // Mobile phone
       street: [''],
       city: [''],
       province_labelFr: [''],
@@ -173,7 +174,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges {
         clientName: this.clientData.firstName || '',
         lastName: this.clientData.lastName || '',
         apartNo: this.clientData.app || '',
-        streetNumber: this.clientData.civic || '',
+        civic: this.clientData.civic || '',
+        streetNumber: this.clientData.streetNumber || '',  // Mobile phone
         street: this.clientData.street || '',
         city: this.clientData.city || '',
         province_labelFr: province ? province.name : '',
@@ -217,7 +219,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges {
             clientName: this.clientData.firstName,
             lastName: this.clientData.lastName,
             apartNo: this.clientData.app,
-            streetNumber: this.clientData.civic,
+            civic: this.clientData.civic,
+            streetNumber: this.clientData.streetNumber,  // Mobile phone
             street: this.clientData.street,
             city: this.clientData.city,
             province_labelFr: province ? province.name : '',

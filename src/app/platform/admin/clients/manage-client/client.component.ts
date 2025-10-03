@@ -535,7 +535,7 @@ createformgroup(){
     province: [{ value: '9', disabled: true }],
     postalCode: [{ value: '', disabled: true }],
     house: [{ value: '2', disabled: true }],
-    streetNumber: [{ value: '', disabled: true },[Validators.required]],
+    streetNumber: [{ value: '', disabled: true }],  // Issue #4: Cell phone made optional
     home: [{ value: '', disabled: true }],
     ext1: [{ value: '', disabled: true }],
     spouse: [{ value: '', disabled: true }],
@@ -564,9 +564,9 @@ createformgroup1(){
   this.spaForm = this.formBuilder.group({
     spaBrandLabel:['',Validators.required],
     spaModelLabel:['',Validators.required],
-    poolSpecialistNAme : ['',Validators.required],
-    series:['',Validators.required],
-    purchaseDate : ['',Validators.required],
+    poolSpecialistNAme : [''],  // Issue #5: Place of purchase made optional
+    series:[''],  // Issue #6: Serial number made optional for admin (still required for tech)
+    purchaseDate : [''],  // Issue #7: Purchase date made completely optional
     warrantydate:['']
   })
 }
@@ -1234,9 +1234,14 @@ addnewSpaDetail(){
           this.isSpaDeleteButtonDisabled = false;
           this.spaId = response.value.spaId;
           
-          // Format dates if needed
-          const purchaseDate = this.formatDate(response.value.purchaseDate);
-          const warrantyDate = this.formatDate(response.value.warrantyDate);
+          // Issue #8: Format dates for month input (YYYY-MM)
+          const purchaseDate = this.formatDateToMonth(response.value.purchaseDate);
+          const warrantyDate = this.formatDateToMonth(response.value.warrantyDate);
+          
+          console.log('Loading spa details - Purchase date from DB:', response.value.purchaseDate);
+          console.log('Loading spa details - Formatted for input:', purchaseDate);
+          console.log('Loading spa details - Warranty date from DB:', response.value.warrantyDate);
+          console.log('Loading spa details - Warranty formatted:', warrantyDate);
           
           // Check if spaBrandLabel exists, if not use default (53)
           const brandId = response.value.spaBrandLabel || 53;
@@ -1270,6 +1275,39 @@ addnewSpaDetail(){
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  // Issue #8: Format date to month-only (YYYY-MM) for month input
+  formatDateToMonth(dateString: string): string {
+    if (!dateString) return '';
+    try {
+      // Handle different date formats from backend
+      if (dateString.includes('/')) {
+        // Format: DD/MM/YYYY
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}`;
+      } else {
+        // Format: YYYY-MM-DD or ISO date
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}`;
+      }
+    } catch (e) {
+      console.error('Error formatting date to month:', e);
+      return '';
+    }
+  }
+
+  // Issue #8: Convert month format (YYYY-MM) to full date (YYYY-MM-DD) for backend
+  convertMonthToFullDate(monthString: string): string {
+    if (!monthString) return '';
+    // If already in full date format, return as is
+    if (monthString.includes('-') && monthString.split('-').length === 3) {
+      return monthString;
+    }
+    // Convert YYYY-MM to YYYY-MM-01 (first day of month)
+    return `${monthString}-01`;
   }
 
   blockwhitespaces(event: any) {
@@ -1423,53 +1461,67 @@ if(this.newClientnumber){
     }
   }
   onSubmitspa() {
-    ;
-    if (this.spaForm.valid) {
-      const requestModel: any = this.spaForm.value;
-      requestModel.spaBrandLabel = typeof requestModel.spaBrandLabel === 'string' ? requestModel.spaBrandLabel : String(requestModel.spaBrandLabel);
-      requestModel.spaModelLabel = typeof requestModel.spaModelLabel === 'string' ? requestModel.spaModelLabel : String(requestModel.spaModelLabel);
-      requestModel.clientId = this.clientid;
-      requestModel.purchaseDate = this.formatDate(requestModel.purchaseDate);
-      // Still include warrantydate in the request if it exists
-      if (requestModel.warrantydate) {
-        requestModel.warrantydate = this.formatDate(requestModel.warrantydate);
-      } else {
-        requestModel.warrantydate = null;
-      }
-      if (this.spaId > 0) {
-        requestModel.spaId = this.spaId;
-        this.clientservice
-          .updateSpaDetails(requestModel)
-          .subscribe((response: any) => {
-            if (response.isSuccess) {
-              this.toaster.success('Spa Updated successfully');
-              this.getSpaDetails();
-              const btnSamElement = document.getElementById('btnsam');
-              if (btnSamElement) {
-                btnSamElement.click();
-              }
-            }
-          });
-      } else {
-        this.clientservice
-          .saveSpaDetails(requestModel)
-          .subscribe((response: any) => {
-            if (response.isSuccess) {
-              this.toaster.success('SPA Added Successfully.');
-              this.spaId = response.value.spaId;
-              this.getSpaDetails();
-              const btnSamElement = document.getElementById('btnsam');
-              if (btnSamElement) {
-                btnSamElement.click();
-              }
-            }
-          });
-      }
+    // Issue #5, #6, #7: Allow saving even with optional fields empty
+    // Only check that required fields (Brand, Model) are present
+    const brandValid = this.spaForm.get('spaBrandLabel')?.value;
+    const modelValid = this.spaForm.get('spaModelLabel')?.value;
+    
+    if (!brandValid || !modelValid) {
+      this.toaster.error('Brand and Model are required');
+      return;
     }
-    else{
-      window.scrollTo(0, 0); //scroll to the first invalid control 
-       this.spaForm.markAllAsTouched(); // Mark all controls as touched to show validation errors
-            return;
+    
+    const requestModel: any = this.spaForm.value;
+    requestModel.spaBrandLabel = typeof requestModel.spaBrandLabel === 'string' ? requestModel.spaBrandLabel : String(requestModel.spaBrandLabel);
+    requestModel.spaModelLabel = typeof requestModel.spaModelLabel === 'string' ? requestModel.spaModelLabel : String(requestModel.spaModelLabel);
+    requestModel.clientId = this.clientid;
+    
+    // Issue #8: Convert month format (YYYY-MM) to full date for backend
+    if (requestModel.purchaseDate) {
+      requestModel.purchaseDate = this.convertMonthToFullDate(requestModel.purchaseDate);
+      console.log('Saving - Purchase date from form:', this.spaForm.value.purchaseDate);
+      console.log('Saving - Converted for backend:', requestModel.purchaseDate);
+    } else {
+      requestModel.purchaseDate = null;  // Allow null/empty
+    }
+    
+    // Issue #8: Convert warranty date month format to full date for backend
+    if (requestModel.warrantydate) {
+      requestModel.warrantydate = this.convertMonthToFullDate(requestModel.warrantydate);
+      console.log('Saving - Warranty date from form:', this.spaForm.value.warrantydate);
+      console.log('Saving - Converted for backend:', requestModel.warrantydate);
+    } else {
+      requestModel.warrantydate = null;
+    }
+    
+    if (this.spaId > 0) {
+      requestModel.spaId = this.spaId;
+      this.clientservice
+        .updateSpaDetails(requestModel)
+        .subscribe((response: any) => {
+          if (response.isSuccess) {
+            this.toaster.success('Spa Updated successfully');
+            this.getSpaDetails();
+            const btnSamElement = document.getElementById('btnsam');
+            if (btnSamElement) {
+              btnSamElement.click();
+            }
+          }
+        });
+    } else {
+      this.clientservice
+        .saveSpaDetails(requestModel)
+        .subscribe((response: any) => {
+          if (response.isSuccess) {
+            this.toaster.success('SPA Added Successfully.');
+            this.spaId = response.value.spaId;
+            this.getSpaDetails();
+            const btnSamElement = document.getElementById('btnsam');
+            if (btnSamElement) {
+              btnSamElement.click();
+            }
+          }
+        });
     }
   }
   removeBraces(event: any) {

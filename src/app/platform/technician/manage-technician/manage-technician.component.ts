@@ -120,15 +120,15 @@ dataSourceService: any[] = [];
     });
 
     this.serviceCallForm = this.fb.group({
-      serviceCallNumber: [''],
-      dateReception: [''],
-      datePlacement: [''],
-      poolSpecialist: [''],
-      issue: [''],
-      status: [''],
-      description: [''],
-      notes: [''],
-      comments: ['']
+      serviceCallNumber: [{value: '', disabled: true}],
+      dateReception: [{value: '', disabled: true}],
+      datePlacement: [{value: '', disabled: true}],
+      poolSpecialist: [{value: '', disabled: true}],
+      issue: [{value: '', disabled: true}],
+      status: [{value: '', disabled: true}],
+      description: [{value: '', disabled: true}],  // Issue #13: Readonly for tech
+      notes: [{value: '', disabled: true}],  // Service call notes readonly for tech
+      comments: [{value: '', disabled: true}]  // Service call comments readonly for tech
     });
   }
 
@@ -415,8 +415,11 @@ dataSourceService: any[] = [];
           console.log('Notes:', this.technicianData.notes);
           console.log('Comments:', this.technicianData.technicianComments);
 
-          // Set payment mode based on payment method
-          const paymentMode = this.technicianData.paymentMethod === 0 || this.technicianData.paymentMethod === null || this.technicianData.paymentMethod === '';
+          // Issue #12: Check if payment method exists to show dropdown
+          // paymentMode checkbox should be true if paymentMethod has a value
+          const hasPaymentMethod = this.technicianData.paymentMethod != null && 
+                                   this.technicianData.paymentMethod !== '' && 
+                                   this.technicianData.paymentMethod !== 0;
 
           // Format times consistently
           const timeFrom = this.formatTimeSpan(this.technicianData.dateVisit);
@@ -431,7 +434,7 @@ dataSourceService: any[] = [];
             durationNextVisit: duration,
             completed: this.technicianData.complete,
             paid: this.technicianData.paid === true,
-            paymentMode: paymentMode,
+            paymentMode: hasPaymentMethod,  // Check if payment method exists
             paymentMethod: this.technicianData.paymentMethod == null || this.technicianData.paymentMethod == '' ? '' : this.technicianData.paymentMethod,
             pendingParts: this.technicianData.missingParts,
             notes: this.technicianData.notes,
@@ -443,6 +446,8 @@ dataSourceService: any[] = [];
 
           console.log('=== Form Values After Patch ===');
           console.log('Visit Form Values:', this.visitForm.value);
+          console.log('Payment Method from DB:', this.technicianData.paymentMethod);
+          console.log('Has Payment Method:', hasPaymentMethod);
           console.log('Payment Method Control:', this.visitForm.get('paymentMethod')?.value);
           console.log('Payment Mode Control:', this.visitForm.get('paymentMode')?.value);
           console.log('Paid Control:', this.visitForm.get('paid')?.value);
@@ -452,12 +457,13 @@ dataSourceService: any[] = [];
           this.loadTechnicianServiceCalls();
           this.getClientDetailByVisitId();
 
-          if(this.visitForm.get('paid')?.value === true) {
+          // Issue #12: Show payment dropdown if payment method exists
+          if(hasPaymentMethod) {
             this.isPaymentChange = true;
-            console.log('Paid is true, setting isPaymentChange to true');
+            console.log('Payment method exists, showing dropdown. Method ID:', this.technicianData.paymentMethod);
           } else {
             this.isPaymentChange = false;
-            console.log('Paid is false, setting isPaymentChange to false');
+            console.log('No payment method, hiding dropdown');
           }
 
           if(this.technicianData.complete == true || this.technicianData.sPieces != null) {

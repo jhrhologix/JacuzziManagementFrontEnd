@@ -650,6 +650,7 @@
                             <label for="zone" class="form-label">{{ 'HEADER.PoolSpecialistNAme' | translate }}</label>
                             <select class="form-select" formControlName="poolSpecialistNAme">
                                 <option value="" disabled selected>Select Spa Vendor</option>
+                                <option [value]="0">{{ 'HEADER.None' | translate }}</option>
                                 <option *ngFor="let option of poolSpecialist" [value]="option.id">
                                     {{option.value }}
 
@@ -678,8 +679,9 @@
 
                         <div class="col-md-12">
                             <label for="purchaseDate" class="form-label">{{ 'HEADER.PurchaseDate' | translate }}</label>
-                            <input (keypress)="blockwhitespaces($event)" type="date" class="form-control"
-                                formControlName="purchaseDate" id="purchaseDate">
+                            <input (keypress)="blockwhitespaces($event)" type="month" class="form-control"
+                                formControlName="purchaseDate" id="purchaseDate" 
+                                placeholder="YYYY-MM">
                             <div *ngIf="spaForm.get('purchaseDate')?.invalid && (spaForm.get('purchaseDate')?.touched || spaForm.get('purchaseDate')?.dirty)"
                                 class="text-danger">
                                 <span *ngIf="spaForm.get('purchaseDate')?.hasError('required')">{{
@@ -689,20 +691,12 @@
                             </div>
                         </div>
 
-                        <!-- Commented out warranty date field
                         <div class="col-md-12">
                             <label for="warrantyDate" class="form-label">{{ 'HEADER.WarrantyDate' | translate }}</label>
-                            <input (keypress)="blockwhitespaces($event)" type="date" class="form-control"
-                                formControlName="warrantydate" id="warrantyDate">
-                            <div *ngIf="spaForm.get('warrantydate')?.invalid && (spaForm.get('warrantydate')?.touched || spaForm.get('warrantydate')?.dirty)"
-                                class="text-danger">
-                                <span *ngIf="spaForm.get('warrantydate')?.hasError('required')">{{
-                                    'HEADER.REQUIRED_WarrantyDate' |
-                                    translate }}</span>
-
-                            </div>
+                            <input (keypress)="blockwhitespaces($event)" type="month" class="form-control"
+                                formControlName="warrantydate" id="warrantyDate"
+                                placeholder="YYYY-MM">
                         </div>
-                        -->
                     </div>
 
 

@@ -28,7 +28,7 @@
                         </div>
                         <div class="col-md-4 mb-2">
                             <label> {{ 'HEADER.CIVIQUE' | translate }} </label>
-                            <input class="form-control" formControlName="streetNumber">
+                            <input class="form-control" formControlName="civic">
 
                         </div>
                         <div class="col-md-4 mb-2">
@@ -63,24 +63,64 @@
                         <!--</div>-->
 
                         <div class="col-md-4 mb-2">
-                            <label> # Tel home. </label>
-                            <input class="form-control" formControlName="home">
-                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                            <label> {{ 'HEADER.PHONE1' | translate }} </label>
+                            <div class="phone-field-wrapper">
+                                <input class="form-control phone-input" formControlName="home" readonly>
+                                <a *ngIf="clientTechForm.get('home')?.value" 
+                                   [href]="'tel:' + clientTechForm.get('home')?.value" 
+                                   class="phone-dial-button"
+                                   title="{{ 'HEADER.ClickToDial' | translate }}">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <label> # Tel spouse. </label>
-                            <input class="form-control" formControlName="spouse">
-                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                            <label> {{ 'HEADER.MOBILE' | translate }} </label>
+                            <div class="phone-field-wrapper">
+                                <input class="form-control phone-input" formControlName="streetNumber" readonly>
+                                <a *ngIf="clientTechForm.get('streetNumber')?.value" 
+                                   [href]="'tel:' + clientTechForm.get('streetNumber')?.value" 
+                                   class="phone-dial-button"
+                                   title="{{ 'HEADER.ClickToDial' | translate }}">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <label> # Tel work. </label>
-                            <input class="form-control" formControlName="work">
-                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                            <label> {{ 'HEADER.PHONE2' | translate }} </label>
+                            <div class="phone-field-wrapper">
+                                <input class="form-control phone-input" formControlName="spouse" readonly>
+                                <a *ngIf="clientTechForm.get('spouse')?.value" 
+                                   [href]="'tel:' + clientTechForm.get('spouse')?.value" 
+                                   class="phone-dial-button"
+                                   title="{{ 'HEADER.ClickToDial' | translate }}">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <label> # Tel other. </label>
-                            <input class="form-control" formControlName="other">
-                            <!-- <i>{{telNo1}}, {{telNo2}}, {{telNo3}}, {{telNo4}}</i> -->
+                            <label> {{ 'HEADER.PHONE3' | translate }} </label>
+                            <div class="phone-field-wrapper">
+                                <input class="form-control phone-input" formControlName="work" readonly>
+                                <a *ngIf="clientTechForm.get('work')?.value" 
+                                   [href]="'tel:' + clientTechForm.get('work')?.value" 
+                                   class="phone-dial-button"
+                                   title="{{ 'HEADER.ClickToDial' | translate }}">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label> {{ 'HEADER.PHONE4' | translate }} </label>
+                            <div class="phone-field-wrapper">
+                                <input class="form-control phone-input" formControlName="other" readonly>
+                                <a *ngIf="clientTechForm.get('other')?.value" 
+                                   [href]="'tel:' + clientTechForm.get('other')?.value" 
+                                   class="phone-dial-button"
+                                   title="{{ 'HEADER.ClickToDial' | translate }}">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
 

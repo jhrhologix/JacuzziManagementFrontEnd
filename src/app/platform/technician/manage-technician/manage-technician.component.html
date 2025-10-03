@@ -61,7 +61,15 @@
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">{{ 'HEADER.COMMENTS' | translate }}</label>
-                  <textarea class="form-control" formControlName="notes" rows="3"></textarea>
+                  <textarea class="form-control" formControlName="notes" rows="3" readonly style="background-color: #f8f9fa;"></textarea>
+                </div>
+              </div>
+              
+              <!-- Issue #13: Add trouble description field for tech visibility -->
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label">{{ 'SERVICE_CALL.ProblemDescription' | translate }}</label>
+                  <textarea class="form-control" formControlName="description" rows="3" readonly style="background-color: #f8f9fa;"></textarea>
                 </div>
               </div>
               
@@ -123,9 +131,7 @@
            </div>
          </div>
        </div>
-              <div class="text-end mt-4">
-                <button type="submit" class="btn btn-primary" (click)="saveServiceCall()">{{ 'HEADER.SAVE' | translate }}</button>
-              </div>
+              <!-- Service call section is readonly for tech - removed save button -->
             </form>
           </div>
         </div>
@@ -275,7 +281,7 @@
               </div>
               <!-- Comments -->
               <div class="mb-3">
-                <label class="form-label"> {{ 'HEADER.COMMENTS' | translate }} </label>
+                <label class="form-label"> {{ 'HEADER.COMMENTS' | translate }} ({{ 'HEADER.NotSentToClient' | translate }}) </label>
                 <textarea class="form-control" formControlName="comments" rows="3"></textarea>
               </div>
               <!-- Submit Button -->

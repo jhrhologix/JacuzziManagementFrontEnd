@@ -30,6 +30,7 @@
                         <label for="zone" class="form-label">{{ 'HEADER.PoolSpecialistNAme' | translate }}</label>
                         <select class="form-select" formControlName="poolSpecialist_id">
                             <option value="" disabled selected>Select pool specialist</option>
+                            <option [value]="0">{{ 'HEADER.None' | translate }}</option>
                             <option *ngFor="let option of poolSpecialist" [value]="option.id">
                             {{option.name}} - {{option.value }} 
                             </option>
@@ -53,13 +54,15 @@
                     <!-- Date d'achat -->
                     <div class="col-md-6">
                         <label for="purchaseDate" class="form-label">{{ 'HEADER.PurchaseDate' | translate }}</label>
-                        <input type="date"  class="form-control" formControlName="purchaseDate" >
+                        <input type="month" class="form-control" formControlName="purchaseDate" 
+                               placeholder="YYYY-MM">
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="warrantyDate" class="form-label">{{ 'HEADER.WarrantyDate' | translate }}</label>
-                    <input type="date" class="form-control" formControlName="warrantydate">
+                    <input type="month" class="form-control" formControlName="warrantydate"
+                           placeholder="YYYY-MM">
                 </div>
                 <div class="col-md-12 mt-4">
                     <div id="spaId" class="table-responsive">

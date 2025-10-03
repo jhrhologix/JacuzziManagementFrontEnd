@@ -444,15 +444,15 @@
                         id="description" rows="3"></textarea>
                 </div>
                 <div class="col-md-4  mb-3">
-                    <label for="commentaires" class="form-label"> {{ 'HEADER.NOTES' | translate }} </label>
+                    <label for="notes" class="form-label"> {{ 'HEADER.NOTES' | translate }} </label>
                     <textarea formControlName="notes" class="form-control" style="text-transform:uppercase"
-                        id="commentaires" rows="3"></textarea>
+                        id="notes" rows="3"></textarea>
                 </div>
-                <!-- <div class="col-md-4  mb-3">
-                    <label for="commentaires" class="form-label"> {{ 'HEADER.COMMENTS' | translate }} </label>
+                <div class="col-md-4  mb-3">
+                    <label for="techniciancomments" class="form-label"> {{ 'HEADER.COMMENTS' | translate }} ({{ 'HEADER.NotSentToClient' | translate }}) </label>
                     <textarea class="form-control" formControlName="techniciancomments" style="text-transform:uppercase"
-                        id="commentaires" rows="3"></textarea>
-                </div> -->
+                        id="techniciancomments" rows="3"></textarea>
+                </div>
             </ng-container>
             <div class="col-md-2 mb-3">
                 <label for="sPieces" class="form-label"> {{ 'SERVICE_CALL.Pièces' | translate }} </label>

@@ -78,12 +78,10 @@ export class SpaDetailsComponent {
     this.translate.setDefaultLang('en');
   }
   ngOnInit() {
-    this.queryPrms();
     this.createSpaForm();
     this.getSpaBrand(); // Only call this if the brand list is not already loaded
     this.getPoolSpecialist();
-    this.getSpaDetailByVisitId(this.visitId);
-
+    this.queryPrms();  // This will call getSpaDetailByVisitId after visitId is set
  }
   
  
@@ -126,6 +124,10 @@ export class SpaDetailsComponent {
       this.technicianName = parsedTechnicianName;
     }
 
+    // Now load spa details after visitId is set
+    if (this.visitId > 0) {
+      this.getSpaDetailByVisitId(this.visitId);
+    }
   }
   createSpaForm(): void {
     this.spaTechForm = this.formBuilder.group({
@@ -133,8 +135,8 @@ export class SpaDetailsComponent {
       spaBrand_id: [0],
       spaModel_id: [0],
       poolSpecialist_id: [0],
-      serialNo: [''],
-      purchaseDate: [''],
+      serialNo: ['', Validators.required],  // Issue #6: Serial number mandatory for tech
+      purchaseDate: [''],  // Issue #7: Purchase date optional for tech
       warrantydate: [''],
       modifiedBy: ['']
 
@@ -204,49 +206,72 @@ export class SpaDetailsComponent {
 
   getSpaDetailByVisitId(visitId: any): void {
     if (!visitId || visitId <= 0) {
-      console.error('Invalid visitId');
+      console.error('Invalid visitId:', visitId);
       return;
     }
     
-    this.techService.getSpaDetailByVisitId(visitId).subscribe(
-      (response: any) => {
-        if (response && response.value) {
+    console.log('=== Loading Spa Details for visitId:', visitId, '===');
+    
+    this.techService.getSpaDetailByVisitId(visitId).subscribe({
+      next: (response: any) => {
+        console.log('Spa details response:', response);
         
+        if (response && response.value) {
+          console.log('Spa value:', response.value);
+          console.log('Spa value length:', response.value.length);
+          
           this.spaDetailList = response.value;
-          this.allSpaDetails=response.value;
-          this.spaId = this.allSpaDetails[0].spaId;
+          this.allSpaDetails = response.value;
+          
           if (this.spaDetailList && this.spaDetailList.length > 0) {
+            this.spaId = this.allSpaDetails[0].spaId;
             var spaDetails = this.spaDetailList[0];
+            
+            console.log('Spa Details Object:', spaDetails);
+            console.log('Purchase Date from DB:', spaDetails.purchaseDate);
+            console.log('Warranty Date from DB:', spaDetails.warrantyDate);
+            
             this.brandId = spaDetails.spaBrand_id;
             this.modelId = spaDetails.spaModel_id;
-            this.poolSpecilistId = spaDetails.poolSpecialist_id;
+            this.poolSpecilistId = spaDetails.poolSpecialist_id || 0;
 
             this.getSpaModel(this.brandId);
-            const purchaseDate = this.convertToDDMMYYYY(spaDetails.purchaseDate);
-            const warrantyDate = this.convertToDDMMYYYY(spaDetails.warrantyDate);
+            
+            // Handle NULL dates gracefully
+            const purchaseDate = spaDetails.purchaseDate ? this.convertToDDMMYYYY(spaDetails.purchaseDate) : '';
+            const warrantyDate = spaDetails.warrantyDate ? this.convertToDDMMYYYY(spaDetails.warrantyDate) : '';
+            
+            console.log('Converted Purchase Date:', purchaseDate);
+            console.log('Converted Warranty Date:', warrantyDate);
+            
             // Update form values
             this.spaTechForm.patchValue({
               spaId: this.spaId,
               spaBrand_id: this.brandId,
               spaBrand_label: spaDetails.spaBrand_label,
               spaModel_label: spaDetails.spaModel_label,
-              poolSpecialist_abbreviation: spaDetails.poolSpecialist_abbreviation,
+              poolSpecialist_abbreviation: spaDetails.poolSpecialist_abbreviation || 'None',
               spaModel_id: this.modelId,
               poolSpecialist_id: this.poolSpecilistId,
-              serialNo: spaDetails.serialNo,
-              
-              modifiedBy: this.technicianName
-            });
-            this.spaTechForm.patchValue({
-              ...this.spaTechForm.value,
+              serialNo: spaDetails.serialNo || '',
               purchaseDate: purchaseDate,
               warrantydate: warrantyDate,
+              modifiedBy: this.technicianName
             });
-
+            
+            console.log('Spa form values after patch:', this.spaTechForm.value);
+          } else {
+            console.warn('No spa details found in response');
           }
+        } else {
+          console.warn('Invalid response format:', response);
         }
       },
-    );
+      error: (error: any) => {
+        console.error('Error loading spa details:', error);
+        this.toaster.error('Failed to load spa details');
+      }
+    });
   }
 
   formatDate(dateString: string): string {
@@ -271,11 +296,24 @@ export class SpaDetailsComponent {
   convertToDDMMYYYY(dateString: string): string {
     if (!dateString) return '';
     
-    // Split the date string by "/"
-    const [day, month, year] = dateString.split('/');
-  
-    // Return the date in YYYY-MM-DD format
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    try {
+      // Handle different date formats from backend
+      if (dateString.includes('/')) {
+        // Format: DD/MM/YYYY
+        const [day, month, year] = dateString.split('/');
+        // Return in YYYY-MM format for month input (Issue #8)
+        return `${year}-${month.padStart(2, '0')}`;
+      } else {
+        // Format: YYYY-MM-DD or ISO date
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}`;
+      }
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '';
+    }
   }
   
 
@@ -285,7 +323,21 @@ export class SpaDetailsComponent {
   
     this.isLoading = true; 
     const requestModel: any = this.spaTechForm.value;
-    requestModel.spaId = this.spaId
+    requestModel.spaId = this.spaId;
+    
+    // Issue #8: Convert month format (YYYY-MM) to full date (YYYY-MM-01) for backend
+    if (requestModel.purchaseDate) {
+      // If month format, add -01 for first day
+      if (requestModel.purchaseDate.length === 7) { // YYYY-MM format
+        requestModel.purchaseDate = `${requestModel.purchaseDate}-01`;
+      }
+    }
+    if (requestModel.warrantydate) {
+      if (requestModel.warrantydate.length === 7) {
+        requestModel.warrantydate = `${requestModel.warrantydate}-01`;
+      }
+    }
+    
     this.techService.updateSpaDetailByTechincian(requestModel).subscribe((Response: any) => {
   
       if (Response.statusCode === 200) {
