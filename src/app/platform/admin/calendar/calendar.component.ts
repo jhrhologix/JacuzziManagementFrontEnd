@@ -436,15 +436,28 @@ toDate: any = null;
       technicianId: job.technicianId,
       ispriorityset: true
     }
-    this.calendarService.addPriority(rqstmodel).subscribe((response: any) => {
-      this.setPriority = true;
-      if (response.value === "Priority updated successfully.") {
-        this.toaster.success('Priority updated successfully.', 'Success');
-        this.getAssignedJobList();
-      }
-      else {
-        this.toaster.warning('The specified priority is already assigned', 'Warning');
-        this.getAssignedJobList();
+    
+    console.log('🔍 PRIORITY CHANGE - Selected priority:', selectedValue);
+    console.log('🔍 PRIORITY CHANGE - Request model:', rqstmodel);
+    console.log('🔍 PRIORITY CHANGE - Job details:', job);
+    
+    this.calendarService.addPriority(rqstmodel).subscribe({
+      next: (response: any) => {
+        console.log('✅ PRIORITY API Response:', response);
+        console.log('✅ FULL Response (stringified):', JSON.stringify(response, null, 2));
+        this.setPriority = true;
+        if (response.value === "Priority updated successfully.") {
+          this.toaster.success('Priority updated successfully.', 'Success');
+          this.getAssignedJobList();
+        }
+        else {
+          this.toaster.warning(response.value || 'The specified priority is already assigned', 'Warning');
+          this.getAssignedJobList();
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ PRIORITY API Error:', error);
+        this.toaster.error('Failed to update priority', 'Error');
       }
     })
   }
