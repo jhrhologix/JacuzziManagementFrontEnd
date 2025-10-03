@@ -16,7 +16,17 @@
       window.googleMapsLoaded = true;
     }
   </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB42TNeUHFfY9FDUHDf88H4HZqyjCyrJ4o&libraries=places&callback=initMap"></script>
+  <!-- Google Maps API key loaded dynamically from environment config -->
+  <script>
+    // Load Google Maps API key from backend or environment
+    // Key should be restricted to your domain in Google Cloud Console
+    const GOOGLE_MAPS_API_KEY = 'YOUR_RESTRICTED_API_KEY_HERE'; // Replace after rotating key
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  </script>
 </head>
 <body class="mat-typography">
   <app-root></app-root>
